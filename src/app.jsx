@@ -78,7 +78,7 @@ function useRoute() {
 }
 const go = (h) => { location.hash = h; };
 
-const NAV = [["home", "Home", "home"], ["syllabus", "Syllabus", "book"], ["reels", "Reels", "reel"], ["quiz", "Quiz", "quiz"], ["marker", "Band Marker", "pen"], ["games", "Games", "game"], ["keywords", "Key words", "key"]];
+const NAV = [["home", "Home", "home"], ["syllabus", "Syllabus", "book"], ["reels", "Reels", "reel"], ["quiz", "Quiz", "quiz"], ["marker", "Written Responses", "pen"], ["games", "Games", "game"], ["keywords", "Key words", "key"]];
 
 /* ================= APP ================= */
 function App() {
@@ -119,7 +119,7 @@ function App() {
         <button className="btn ghost sm" style={{ background: "rgba(255,255,255,.12)", color: "#fff" }} onClick={toggleTheme} aria-label="Switch theme"><I n="moon" s={18} /></button>
       </header>
       <main className="main"><div className="wrap" key={route}>{view}</div></main>
-      <nav className="tabbar">{NAV.slice(0, 6).map(([h, label, ic]) => <button key={h} className={section === h ? "on" : ""} onClick={() => go(h)}><I n={ic} />{label === "Band Marker" ? "Marker" : label}</button>)}</nav>
+      <nav className="tabbar">{NAV.slice(0, 6).map(([h, label, ic]) => <button key={h} className={section === h ? "on" : ""} onClick={() => go(h)}><I n={ic} />{label === "Written Responses" ? "Writing" : label}</button>)}</nav>
     </div>
   );
 }
@@ -133,7 +133,7 @@ function Home({ store }) {
   const nf = faOf(nextDot), nd = DOTS[nextDot];
   const pct = Math.round(seen / 36 * 100), R = 98, C = 2 * Math.PI * R;
   const hr = new Date().getHours(), greet = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
-  const TOOLS = [["reels", "reel", "1-minute reels", "Narrated, animated revision clips for every dot point.", "#fdecec", "#bf2026"], ["quiz", "quiz", "Quizzes", "Section I style multiple choice, with the reasoning behind every answer.", "#e8effb", "#1d499f"], ["marker", "pen", "Band Marker", "Write a response and get a mark, a band and HSC-marker feedback.", "#fdf3dc", "#a86a00"], ["games", "game", "Revision games", "Rapid Fire, Sort Rush, Term Match and more.", "#e6f5ed", "#1f8a5b"]];
+  const TOOLS = [["reels", "reel", "1-minute reels", "Narrated, animated revision clips for every dot point.", "#fdecec", "#bf2026"], ["quiz", "quiz", "Quizzes", "Section I style multiple choice, with the reasoning behind every answer.", "#e8effb", "#1d499f"], ["marker", "pen", "Written Responses", "Write short answers and extended responses, get a mark and band, and see a Band 6 answer.", "#fdf3dc", "#a86a00"], ["games", "game", "Revision games", "Rapid Fire, Sort Rush, Term Match and more.", "#e6f5ed", "#1f8a5b"]];
   return (<>
     <section className="hero">
       <div>
@@ -317,9 +317,31 @@ function pickVoice() {
   return bestVoice;
 }
 if (window.speechSynthesis) { try { speechSynthesis.addEventListener("voiceschanged", () => { bestVoice = undefined; }); } catch (e) {} }
-function deviceSay(text) {
+const liveUtterances = []; // Chrome drops callbacks if utterances are garbage-collected
+let lastCancel = 0;
+function cancelSpeech() { try { if (window.speechSynthesis) { speechSynthesis.cancel(); lastCancel = performance.now(); } } catch (e) {} }
+function voicesReady() {
   return new Promise((res) => {
-    try { const u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-AU"; u.rate = 1; u.pitch = 1; u.onend = res; u.onerror = res; speechSynthesis.speak(u); setTimeout(res, 20000); } catch (e) { res(); }
+    if (!window.speechSynthesis || speechSynthesis.getVoices().length) return res();
+    const done = () => { try { speechSynthesis.removeEventListener("voiceschanged", done); } catch (e) {} res(); };
+    try { speechSynthesis.addEventListener("voiceschanged", done); } catch (e) {}
+    setTimeout(done, 1200);
+  });
+}
+// Called synchronously inside the tap handler so browsers that need a gesture (Chrome, iOS Safari) unlock speech.
+function unlockSpeech() { try { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; liveUtterances.push(u); speechSynthesis.resume(); speechSynthesis.speak(u); } } catch (e) {} }
+async function deviceSay(text) {
+  await voicesReady();
+  const wait = 120 - (performance.now() - lastCancel); if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  return new Promise((res) => {
+    let settled = false; const end = () => { if (!settled) { settled = true; const i = liveUtterances.indexOf(u); if (i >= 0) liveUtterances.splice(i, 1); res(); } };
+    let u;
+    try {
+      u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-AU"; u.rate = 1; u.pitch = 1;
+      u.onend = end; u.onerror = end; liveUtterances.push(u);
+      speechSynthesis.resume(); speechSynthesis.speak(u);
+      setTimeout(end, Math.max(6000, text.length * 120));
+    } catch (e) { end(); }
   });
 }
 function Reel({ id, store, update, autoplay, onEnd, compact }) {
@@ -331,12 +353,13 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
   const [started, setStarted] = useState(false);
   const [done, setDone] = useState(false);
   const [muted, setMuted] = useState(() => !!store.muted);
+  const mutedRef = useRef(!!store.muted);
   const [prog, setProg] = useState(0);
   const run = useRef(0);
   const liked = !!(store.liked || {})[id];
   const th = REEL_THEMES[ALL_DOT_IDS.indexOf(id) % REEL_THEMES.length];
 
-  const stopAll = () => { run.current++; try { const t = tts || capCache.tts; t && t.stop(); } catch (e) {} try { speechSynthesis.cancel(); } catch (e) {} };
+  const stopAll = () => { run.current++; try { const t = tts || capCache.tts; t && t.stop(); } catch (e) {} cancelSpeech(); };
   useEffect(() => () => stopAll(), []);
   useEffect(() => { stopAll(); setI(0); setPlaying(false); setStarted(false); setDone(false); setProg(0); if (autoplay) setTimeout(() => playFrom(0), 300); }, [id]);
 
@@ -344,7 +367,8 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
 
   async function playFrom(start) {
     stopAll(); const my = run.current; setStarted(true); setDone(false); setPlaying(true); setI(start); setProg(0);
-    const voice = muted ? null : await getCap("tts");
+    const isMuted = mutedRef.current;
+    const voice = isMuted ? null : await getCap("tts");
     if (run.current !== my) return;
     if (voice) {
       // One continuous Claude-voice reading; each line advances the slide as it starts.
@@ -366,8 +390,8 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
       setI(k); setProg(0);
       const b = beats[k], ms = beatMs(b), t0 = performance.now();
       const tick = setInterval(() => setProg(Math.min(1, (performance.now() - t0) / ms)), 100);
-      const spoken = !muted && window.speechSynthesis ? deviceSay(b.say) : Promise.resolve();
-      await Promise.all([spoken, new Promise((r) => setTimeout(r, muted ? ms : 1600))]);
+      const spoken = !isMuted && window.speechSynthesis ? deviceSay(b.say) : Promise.resolve();
+      await Promise.all([spoken, new Promise((r) => setTimeout(r, isMuted ? ms : 1600))]);
       clearInterval(tick); setProg(1);
       if (run.current !== my) return;
       await new Promise((r) => setTimeout(r, 450));
@@ -376,7 +400,7 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
   }
   const pause = () => { stopAll(); setPlaying(false); };
   const jump = (k) => { const n = Math.max(0, Math.min(beats.length - 1, k)); setI(n); if (playing) playFrom(n); else { setStarted(true); setProg(0); } };
-  const toggleMute = () => { const m = !muted; setMuted(m); update((s) => ({ ...s, muted: m })); if (playing) { stopAll(); setTimeout(() => playFrom(i), 50); } };
+  const toggleMute = () => { const m = !muted; mutedRef.current = m; setMuted(m); update((s) => ({ ...s, muted: m })); if (!m) unlockSpeech(); if (playing) { stopAll(); setTimeout(() => playFrom(i), 50); } };
 
   return (
     <div className="reel" style={{ "--b1": th[0], "--b2": th[1] }}>
@@ -388,7 +412,7 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
         <span className="tag" style={{ alignSelf: "center" }}>Reel complete</span>
         <div className="k" style={{ fontSize: 26 }}>Now test yourself</div>
         <button className="btn red" onClick={() => go("dot-" + id)}>Quiz and practice</button>
-        <button className="btn ghost" style={{ background: "rgba(255,255,255,.15)", color: "#fff" }} onClick={() => playFrom(0)}><I n="restart" s={16} />Watch again</button>
+        <button className="btn ghost" style={{ background: "rgba(255,255,255,.15)", color: "#fff" }} onClick={() => { if (!mutedRef.current) unlockSpeech(); playFrom(0); }}><I n="restart" s={16} />Watch again</button>
       </div></div>}
       <button className="tapzone l" aria-label="Previous beat" onClick={() => jump(i - 1)} />
       <button className="tapzone r" aria-label="Next beat" onClick={() => jump(i + 1)} />
@@ -396,9 +420,9 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
       <div className="rail">
         <button className={liked ? "on" : ""} aria-label="Save reel" onClick={() => update((s) => ({ ...s, liked: { ...(s.liked || {}), [id]: !liked } }))}><I n="heart" /></button><small>{liked ? "Saved" : "Save"}</small>
         <button aria-label={muted ? "Unmute" : "Mute"} onClick={toggleMute}><I n={muted ? "mute" : "vol"} /></button><small>{muted ? "Muted" : "Voice"}</small>
-        <button aria-label={playing ? "Pause" : "Play"} onClick={() => playing ? pause() : playFrom(done ? 0 : i)}><I n={playing ? "pause" : "play"} /></button><small>{playing ? "Pause" : "Play"}</small>
+        <button aria-label={playing ? "Pause" : "Play"} onClick={() => { if (playing) return pause(); if (!mutedRef.current) unlockSpeech(); playFrom(done ? 0 : i); }}><I n={playing ? "pause" : "play"} /></button><small>{playing ? "Pause" : "Play"}</small>
       </div>
-      {!started && <button className="playov" onClick={() => playFrom(0)} aria-label="Play reel"><span><I n="play" /></span></button>}
+      {!started && <button className="playov" onClick={() => { if (!mutedRef.current) unlockSpeech(); playFrom(0); }} aria-label="Play reel"><span><I n="play" /></span></button>}
     </div>
   );
 }
@@ -453,7 +477,7 @@ function Quiz({ items, title, onDone, onExit }) {
     <div className="card q-card" style={{ textAlign: "center" }}>
       <div style={{ display: "flex", justifyContent: "center" }}><div className="score-ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="64" fill="none" stroke="var(--surface-2)" strokeWidth="12" /><circle cx="75" cy="75" r="64" fill="none" stroke={pct >= 80 ? "var(--good)" : pct >= 50 ? "var(--warn)" : "var(--bad)"} strokeWidth="12" strokeLinecap="round" strokeDasharray={402} strokeDashoffset={402 - 402 * pct / 100} /></svg><b>{pct}%</b></div></div>
       <h2 style={{ margin: "14px 0 6px" }}>{score} / {order.length} correct</h2>
-      <p className="muted">{pct >= 90 ? "Band 6 recall. Now try a written response in the Band Marker." : pct >= 70 ? "Solid. Re-read the summary for the ones you missed." : "Revisit the revision notes and the reel, then try again."}</p>
+      <p className="muted">{pct >= 90 ? "Band 6 recall. Now try a question in Written Responses." : pct >= 70 ? "Solid. Re-read the summary for the ones you missed." : "Revisit the revision notes and the reel, then try again."}</p>
       {wrong.length > 0 && <div style={{ textAlign: "left", marginTop: 18 }}><span className="eyebrow">Review your misses</span>{wrong.map((w) => <div className="why" key={w.id}><b>{w.q}</b>{w.o[w.a]}. {w.why} <a href={"#dot-" + w.dot} style={{ color: "var(--crest-2)", fontWeight: 700 }}>Revise dot point →</a></div>)}</div>}
       <div className="row" style={{ justifyContent: "center", marginTop: 18 }}><button className="btn" onClick={() => { setN(0); setScore(0); setWrong([]); setPick(null); }}>Try again</button>{onExit && <button className="btn ghost" onClick={onExit}>Back to quizzes</button>}</div>
     </div>); }
@@ -627,7 +651,7 @@ function Marker({ store, update, initial }) {
   const list = (tab === "sa" ? saList : erList).filter((x) => faF === "all" || x.fa === faF);
   const history = (store.marks || []).slice(-6).reverse();
   return (<>
-    <div className="page-h"><span className="eyebrow">Band Marker</span><h1>Write it. Get it marked.</h1><p>Answer short-answer (Section II) and extended-response (Section III) questions. Each one is marked instantly on your device against NESA-style guidelines: you get a mark, a band equivalent, feedback on the key word, the content you missed, and your response marked up.</p></div>
+    <div className="page-h"><span className="eyebrow">Written Responses</span><h1>Write it. Get it marked.</h1><p>Answer short-answer (Section II) and extended-response (Section III) questions. Each one is marked instantly on your device against NESA-style guidelines: you get a mark, a band equivalent, feedback on the key word, the content you missed, and your response marked up.</p></div>
     <div className="tabs" style={{ marginTop: 0 }}>
       <button className={tab === "sa" && !customOn ? "on" : ""} onClick={() => { setTab("sa"); setCustomOn(false); setSel(saList[0]); }}>Short answer · Section II</button>
       <button className={tab === "er" && !customOn ? "on" : ""} onClick={() => { setTab("er"); setCustomOn(false); setSel(erList[0]); }}>Extended response · 12 marks</button>
@@ -659,7 +683,7 @@ function Keywords() {
     <div className="card" style={{ overflow: "hidden" }}>{VERBS.map((v) => <div className="kw" key={v.w}><b>{v.w}<span className={"tier t" + v.tier}>{["", "Recall", "Relate", "Judge"][v.tier]}</span></b><div><p>{v.d}</p><small>{v.how}</small></div></div>)}</div>
     <h2 style={{ fontSize: 22, margin: "30px 0 12px" }}>What each band looks like</h2>
     <div className="ladder">{BANDS.map((b) => <div key={b.b}><b>Band {b.b}</b><span>{b.d}</span></div>)}</div>
-    <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>Summarised from the NESA course performance descriptors. In the Band Marker, a question's band equivalent comes from its mark as a percentage: 90%+ is Band 6, 80% Band 5, 70% Band 4, 60% Band 3, 50% Band 2.</p>
+    <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>Summarised from the NESA course performance descriptors. In Written Responses, a question's band equivalent comes from its mark as a percentage: 90%+ is Band 6, 80% Band 5, 70% Band 4, 60% Band 3, 50% Band 2.</p>
     <h2 style={{ fontSize: 22, margin: "30px 0 12px" }}>Structuring a 12-mark extended response</h2>
     <div className="grid g2">{[["Introduction", "Answer the question straight away. Define the key terms, give your judgement or position, and outline your argument."], ["Body paragraphs (3–4)", "Use PEEL for each: Point → Explain (cause and effect) → Evidence (data, named programs, examples) → Link back to the question and the key word."], ["Integrate both sides", "For discuss, assess and evaluate, weigh strengths against limitations within each paragraph rather than leaving them all to the end."], ["Conclusion", "Restate your judgement, now justified by the evidence. Don't introduce new information."]].map(([h, p]) => <div className="concept" key={h} style={{ "--c": "var(--crest-2)" }}><h4>{h}</h4><p>{p}</p></div>)}</div>
   </>);
