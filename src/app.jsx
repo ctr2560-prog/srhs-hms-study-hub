@@ -319,6 +319,22 @@ function pickVoice() {
   return bestVoice;
 }
 if (window.speechSynthesis) { try { speechSynthesis.addEventListener("voiceschanged", () => { bestVoice = undefined; }); } catch (e) {} }
+// Pre-recorded narration (audio/<dot>-<beat>.m4a), played through one shared element so a single tap unlocks it on iOS.
+const reelAudio = typeof Audio !== "undefined" ? new Audio() : null;
+const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+const recordedFor = (id) => (typeof AUDIO !== "undefined" && AUDIO && AUDIO.files && AUDIO.files[id]) || null;
+function unlockAudio() { try { if (reelAudio && !reelAudio.dataset.unlocked) { reelAudio.src = SILENT; const p = reelAudio.play(); p && p.catch(() => {}); reelAudio.dataset.unlocked = "1"; } } catch (e) {} }
+function stopRecorded() { try { reelAudio && reelAudio.pause(); } catch (e) {} }
+function playRecorded(file, ms) {
+  return new Promise((res) => {
+    if (!reelAudio) return res(false);
+    let done = false; const end = (ok) => { if (!done) { done = true; reelAudio.onended = reelAudio.onerror = null; res(ok); } };
+    reelAudio.onended = () => end(true); reelAudio.onerror = () => end(false);
+    reelAudio.src = "audio/" + file;
+    const p = reelAudio.play(); if (p) p.catch(() => end(false));
+    setTimeout(() => end(true), (ms || 8000) + 4000);
+  });
+}
 let speechStuck = false;
 const liveUtterances = []; // Chrome drops callbacks if utterances are garbage-collected
 let lastCancel = 0;
@@ -368,7 +384,7 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
   const liked = !!(store.liked || {})[id];
   const th = REEL_THEMES[ALL_DOT_IDS.indexOf(id) % REEL_THEMES.length];
 
-  const stopAll = () => { run.current++; try { const t = tts || capCache.tts; t && t.stop(); } catch (e) {} cancelSpeech(); };
+  const stopAll = () => { run.current++; try { const t = tts || capCache.tts; t && t.stop(); } catch (e) {} cancelSpeech(); stopRecorded(); };
   useEffect(() => () => stopAll(), []);
   useEffect(() => { stopAll(); setI(0); setPlaying(false); setStarted(false); setDone(false); setProg(0); if (autoplay) setTimeout(() => playFrom(0), 300); }, [id]);
 
@@ -392,7 +408,24 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
       clearInterval(tick); try { typeof off === "function" && off(); } catch (e) {}
       if (run.current !== my) return;
       if (ok) { setProg(1); await new Promise((r) => setTimeout(r, 500)); if (run.current === my) finish(); return; }
-      // Claude voice refused (e.g. turned off): carry on with the device voice from the current slide.
+      // Claude voice refused (e.g. turned off): carry on with recordings or the device voice.
+    }
+    const rec = !isMuted && recordedFor(id);
+    if (rec) {
+      for (let k = start; k < beats.length; k++) {
+        if (run.current !== my) return;
+        const [file, ms] = rec[k] || [];
+        setI(k); setProg(0);
+        const t0 = performance.now(), dur = Math.max(ms || beatMs(beats[k]), 1200);
+        const tick = setInterval(() => setProg(Math.min(1, (performance.now() - t0) / dur)), 100);
+        const ok = file ? await playRecorded(file, ms) : false;
+        if (!ok && run.current === my) await deviceSay(beats[k].say);
+        clearInterval(tick); setProg(1);
+        if (run.current !== my) return;
+        await new Promise((r) => setTimeout(r, 350));
+      }
+      if (run.current === my) finish();
+      return;
     }
     for (let k = start; k < beats.length; k++) {
       if (run.current !== my) return;
@@ -409,7 +442,7 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
   }
   const pause = () => { stopAll(); setPlaying(false); };
   const jump = (k) => { const n = Math.max(0, Math.min(beats.length - 1, k)); setI(n); if (playing) playFrom(n); else { setStarted(true); setProg(0); } };
-  const toggleMute = () => { const m = !muted; mutedRef.current = m; setMuted(m); update((s) => ({ ...s, muted: m })); if (!m) unlockSpeech(); if (playing) { stopAll(); setTimeout(() => playFrom(i), 50); } };
+  const toggleMute = () => { const m = !muted; mutedRef.current = m; setMuted(m); update((s) => ({ ...s, muted: m })); if (!m) { unlockSpeech(); unlockAudio(); } if (playing) { stopAll(); setTimeout(() => playFrom(i), 50); } };
 
   return (
     <div className="reel" style={{ "--b1": th[0], "--b2": th[1] }}>
@@ -421,7 +454,7 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
         <span className="tag" style={{ alignSelf: "center" }}>Reel complete</span>
         <div className="k" style={{ fontSize: 26 }}>Now test yourself</div>
         <button className="btn red" onClick={() => go("dot-" + id)}>Quiz and practice</button>
-        <button className="btn ghost" style={{ background: "rgba(255,255,255,.15)", color: "#fff" }} onClick={() => { if (!mutedRef.current) unlockSpeech(); playFrom(0); }}><I n="restart" s={16} />Watch again</button>
+        <button className="btn ghost" style={{ background: "rgba(255,255,255,.15)", color: "#fff" }} onClick={() => { if (!mutedRef.current) { unlockSpeech(); unlockAudio(); } playFrom(0); }}><I n="restart" s={16} />Watch again</button>
       </div></div>}
       <button className="tapzone l" aria-label="Previous beat" onClick={() => jump(i - 1)} />
       <button className="tapzone r" aria-label="Next beat" onClick={() => jump(i + 1)} />
@@ -429,10 +462,10 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
       <div className="rail">
         <button className={liked ? "on" : ""} aria-label="Save reel" onClick={() => update((s) => ({ ...s, liked: { ...(s.liked || {}), [id]: !liked } }))}><I n="heart" /></button><small>{liked ? "Saved" : "Save"}</small>
         <button aria-label={muted ? "Unmute" : "Mute"} onClick={toggleMute}><I n={muted ? "mute" : "vol"} /></button><small>{muted ? "Muted" : "Voice"}</small>
-        <button aria-label={playing ? "Pause" : "Play"} onClick={() => { if (playing) return pause(); if (!mutedRef.current) unlockSpeech(); playFrom(done ? 0 : i); }}><I n={playing ? "pause" : "play"} /></button><small>{playing ? "Pause" : "Play"}</small>
+        <button aria-label={playing ? "Pause" : "Play"} onClick={() => { if (playing) return pause(); if (!mutedRef.current) { unlockSpeech(); unlockAudio(); } playFrom(done ? 0 : i); }}><I n={playing ? "pause" : "play"} /></button><small>{playing ? "Pause" : "Play"}</small>
       </div>
       {stuck && !muted && <div className="voice-stuck"><b>No sound?</b> Your browser's voice isn't responding. Fully quit and reopen the browser (on a Mac: ⌘Q), then try again. Captions keep playing below.</div>}
-      {!started && <button className="playov" onClick={() => { if (!mutedRef.current) unlockSpeech(); playFrom(0); }} aria-label="Play reel"><span><I n="play" /></span></button>}
+      {!started && <button className="playov" onClick={() => { if (!mutedRef.current) { unlockSpeech(); unlockAudio(); } playFrom(0); }} aria-label="Play reel"><span><I n="play" /></span></button>}
     </div>
   );
 }
@@ -451,7 +484,7 @@ function Reels({ store }) {
       <div className="tabs" style={{ margin: 0 }}>{FOCUS_AREAS.map((x) => <button key={x.id} className={x.id === fa ? "on" : ""} onClick={() => setFa(x.id)}>Focus area {x.n}</button>)}</div>
       <button className="btn red" onClick={() => go("reel-" + f.dots[0])}><I n="play" s={18} />Play the feed</button>
     </div>
-    <p className="muted" style={{ fontSize: 13.5, marginBottom: 14 }}>{tts ? "Narrated in a Claude voice." : tts === null ? "Narrated with your device's voice. Turn the voice off for captions only." : "Checking for a narration voice…"}</p>
+    <p className="muted" style={{ fontSize: 13.5, marginBottom: 14 }}>{tts ? "Narrated in a Claude voice." : tts === null ? (typeof AUDIO !== "undefined" && AUDIO ? "Narrated by " + AUDIO.voice.replace(/\s*\(.*\)/, "") + ". Turn the voice off for captions only." : "Narrated with your device's voice. Turn the voice off for captions only.") : "Checking for a narration voice…"}</p>
     <div className="reel-pick">{f.dots.map((d) => <ReelThumb key={d} id={d} store={store} onClick={() => go("reel-" + d)} />)}</div>
   </>);
 }
