@@ -137,7 +137,7 @@ function Home({ store }) {
       <div>
         <span className="eyebrow">{greet} · Year 12 Health and Movement Science</span>
         <h1>Revise every dot point.<br /><em>Write like a Band 6.</em></h1>
-        <p>Big-text notes, 1-minute reels, quizzes and an HSC-style marker for all 36 dot points in Health and Movement Science.</p>
+        <p>Study notes, 1-minute reels, quizzes and an HSC-style marker for all 36 dot points in Health and Movement Science.</p>
         <div className="row" style={{ marginTop: 26 }}>
           <button className="btn red lg" onClick={() => go("dot-" + nextDot)}><I n="book" s={18} />{seen ? "Continue revising" : "Start revising"}</button>
           <button className="btn line lg" onClick={() => go("reel-" + nextDot)}><I n="play" s={18} />Watch a reel</button>
@@ -231,7 +231,7 @@ function DotPage({ id, store, update }) {
     <div className="tabs" role="tablist">{DOT_TABS.map(([k, l, ic]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}><I n={ic} />{l}</button>)}</div>
 
     {tab === "revise" && <div>
-      <div className="spread" style={{ marginBottom: 16 }}><span className="eyebrow">Revision notes · large text</span>
+      <div className="spread" style={{ marginBottom: 16 }}><span className="eyebrow">Revision notes</span>
         <div className="textsize" aria-label="Text size">{[1, 2, 3].map((n) => <button key={n} className={size === n ? "on" : ""} style={{ fontSize: 11 + n * 3 }} onClick={() => { setSize(n); update((s) => ({ ...s, textSize: n })); }}>A</button>)}</div></div>
       <article className={"read s" + size}>{d.notes.map(([h, p]) => <section key={h}><h2>{h}</h2><p>{rich(p)}</p></section>)}</article>
       <div className="tipbox read"><b>Marker's tip</b><p>{d.tip}</p></div>
