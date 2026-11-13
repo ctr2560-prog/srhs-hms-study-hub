@@ -319,6 +319,7 @@ function pickVoice() {
   return bestVoice;
 }
 if (window.speechSynthesis) { try { speechSynthesis.addEventListener("voiceschanged", () => { bestVoice = undefined; }); } catch (e) {} }
+let speechStuck = false;
 const liveUtterances = []; // Chrome drops callbacks if utterances are garbage-collected
 let lastCancel = 0;
 function cancelSpeech() { try { if (window.speechSynthesis) { speechSynthesis.cancel(); lastCancel = performance.now(); } } catch (e) {} }
@@ -340,8 +341,12 @@ async function deviceSay(text) {
     let u;
     try {
       u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-AU"; u.rate = 1; u.pitch = 1;
+      let started = false;
+      u.onstart = () => { started = true; if (speechStuck) { speechStuck = false; window.dispatchEvent(new Event("hms-speech")); } };
       u.onend = end; u.onerror = end; liveUtterances.push(u);
       speechSynthesis.resume(); speechSynthesis.speak(u);
+      // Chrome sometimes jams its speech engine (it reports speaking but never starts). Detect it and tell the viewer.
+      setTimeout(() => { if (!started && !settled) { speechStuck = true; window.dispatchEvent(new Event("hms-speech")); try { speechSynthesis.cancel(); } catch (e) {} end(); } }, 3500);
       setTimeout(end, Math.max(6000, text.length * 120));
     } catch (e) { end(); }
   });
@@ -356,6 +361,8 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
   const [done, setDone] = useState(false);
   const [muted, setMuted] = useState(() => !!store.muted);
   const mutedRef = useRef(!!store.muted);
+  const [stuck, setStuck] = useState(speechStuck);
+  useEffect(() => { const h = () => setStuck(speechStuck); window.addEventListener("hms-speech", h); return () => window.removeEventListener("hms-speech", h); }, []);
   const [prog, setProg] = useState(0);
   const run = useRef(0);
   const liked = !!(store.liked || {})[id];
@@ -424,6 +431,7 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
         <button aria-label={muted ? "Unmute" : "Mute"} onClick={toggleMute}><I n={muted ? "mute" : "vol"} /></button><small>{muted ? "Muted" : "Voice"}</small>
         <button aria-label={playing ? "Pause" : "Play"} onClick={() => { if (playing) return pause(); if (!mutedRef.current) unlockSpeech(); playFrom(done ? 0 : i); }}><I n={playing ? "pause" : "play"} /></button><small>{playing ? "Pause" : "Play"}</small>
       </div>
+      {stuck && !muted && <div className="voice-stuck"><b>No sound?</b> Your browser's voice isn't responding. Fully quit and reopen the browser (on a Mac: ⌘Q), then try again. Captions keep playing below.</div>}
       {!started && <button className="playov" onClick={() => { if (!mutedRef.current) unlockSpeech(); playFrom(0); }} aria-label="Play reel"><span><I n="play" /></span></button>}
     </div>
   );
