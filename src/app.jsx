@@ -234,6 +234,8 @@ function DotPage({ id, store, update }) {
       <div className="spread" style={{ marginBottom: 16 }}><span className="eyebrow">Revision notes</span>
         <div className="textsize" aria-label="Text size">{[1, 2, 3].map((n) => <button key={n} className={size === n ? "on" : ""} style={{ fontSize: 11 + n * 3 }} onClick={() => { setSize(n); update((s) => ({ ...s, textSize: n })); }}>A</button>)}</div></div>
       <article className={"read s" + size}>{d.notes.map(([h, p]) => <section key={h}><h2>{h}</h2><p>{rich(p)}</p></section>)}</article>
+      {d.ex && <div className="excard read"><span className="eyebrow">Use this example</span><h3>{d.ex.title}</h3><p>{d.ex.text}</p><div className="exuse"><b>How to write it into your answer</b><p>“{d.ex.use}”</p></div></div>}
+      {d.mist && <div className="mistakes read"><span className="eyebrow">Common mistakes</span><ul>{d.mist.map((m, k) => <li key={k}>{m}</li>)}</ul></div>}
       <div className="tipbox read"><b>Marker's tip</b><p>{d.tip}</p></div>
     </div>}
 
