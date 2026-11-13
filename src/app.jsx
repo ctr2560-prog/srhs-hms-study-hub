@@ -319,7 +319,7 @@ function pickVoice() {
   return bestVoice;
 }
 if (window.speechSynthesis) { try { speechSynthesis.addEventListener("voiceschanged", () => { bestVoice = undefined; }); } catch (e) {} }
-// Pre-recorded narration (audio/<dot>-<beat>.m4a), played through one shared element so a single tap unlocks it on iOS.
+// Pre-recorded narration (audio/<dot>-<beat>.mp3), played through one shared element so a single tap unlocks it on iOS.
 const reelAudio = typeof Audio !== "undefined" ? new Audio() : null;
 const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 const recordedFor = (id) => (typeof AUDIO !== "undefined" && AUDIO && AUDIO.files && AUDIO.files[id]) || null;

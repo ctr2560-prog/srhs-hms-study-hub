@@ -1,4 +1,4 @@
-// Records every reel line to audio/<dot>-<beat>.m4a with a macOS voice, and writes src/audio-manifest.js.
+// Records every reel line to audio/<dot>-<beat>.mp3 with a macOS voice, and writes src/audio-manifest.js.
 // Usage: node tools/record-reels.js "Matilda (Premium)" [rate] [onlyId]
 const fs = require("fs"), path = require("path"), { execFileSync } = require("child_process");
 const root = path.join(__dirname, "..");
@@ -45,9 +45,9 @@ for (const id of ORDER) {
   if (only && id !== only) continue;
   manifest[id] = [];
   D[id].reel.forEach((beat, k) => {
-    const text = speakable(say(beat)), file = `${id}-${k}.m4a`;
+    const text = speakable(say(beat)), file = `${id}-${k}.mp3`;
     execFileSync("say", ["-v", voice, "-r", rate, "-o", tmp, text]);
-    execFileSync("afconvert", ["-f", "m4af", "-d", "aac", "-b", "48000", "-c", "1", tmp, path.join(outDir, file)]);
+    execFileSync("lame", ["--quiet", "-m", "m", "-b", "56", tmp, path.join(outDir, file)]);
     const info = execFileSync("afinfo", [path.join(outDir, file)]).toString();
     const secs = parseFloat((info.match(/estimated duration: ([\d.]+)/) || [])[1] || "0");
     manifest[id].push([file, Math.round(secs * 1000)]);
