@@ -109,9 +109,7 @@ function App() {
         {NAV.map(([h, label, ic]) => <button key={h} className={"nav-btn" + (section === h ? " on" : "")} onClick={() => go(h)}><I n={ic} />{label}</button>)}
         <div className="side-prog"><div className="lbl">Course progress<b>{Math.round(Object.keys(store.seen).length / 36 * 100)}%</b></div><div className="bar"><i style={{ width: Object.keys(store.seen).length / 36 * 100 + "%" }} /></div></div>
         <div className="side-foot">
-          <div className="motto">Strength through learning</div>
-          Health and Movement Science 11–12 (2023). Year 12 HSC course.
-          <button className="theme-tg" onClick={toggleTheme}>Switch light / dark</button>
+          <button className="theme-tg" onClick={toggleTheme}><I n={theme === "dark" ? "sun" : "moon"} s={16} />{theme === "dark" ? "Light mode" : "Dark mode"}</button>
         </div>
       </aside>
       <header className="mob-head"><Crest /><div style={{ flex: 1 }}><b>HMS Study Hub</b><small>Sarah Redfern HS · Year 12</small></div>
