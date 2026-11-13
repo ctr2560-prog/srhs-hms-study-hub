@@ -443,6 +443,34 @@ function QuizHub({ store, update }) {
 }
 
 /* ================= BAND MARKER ================= */
+const MODELS = Object.assign({}, MODELS_FA1, MODELS_FA2, MODELS_ER);
+const modelFor = (q) => MODELS[q.id.replace(/^sa-/, "")] || null;
+function ModelAnswer({ q, wc }) {
+  const text = modelFor(q);
+  const [open, setOpen] = useState(false), [marks, setMarks] = useState(true);
+  const r = useMemo(() => text ? readerMark(q, text) : null, [q.id]);
+  const qv = VERBS.find((v) => v.w.toLowerCase() === (q.verb || "").toLowerCase()) || VERBS.find((v) => new RegExp("\\b" + v.w + "\\b", "i").test(q.q));
+  const vt = /to what extent/i.test(q.q) ? "judge" : rdVerbType(qv);
+  if (!text) return null;
+  return (<div className="card pad model">
+    <div className="spread"><div><span className="eyebrow">Model response</span><h4 style={{ fontSize: 18, marginTop: 4 }}>Band 6 answer · {q.m} marks</h4></div>
+      <button className={"btn " + (open ? "ghost" : "") + " sm"} onClick={() => setOpen(!open)}><I n={open ? "back" : "bulb"} s={15} />{open ? "Hide" : "Show the Band 6 answer"}</button></div>
+    {!open && <p className="muted" style={{ fontSize: 14.5, marginTop: 10 }}>{wc < 20 ? "Have a go yourself first. You'll learn far more by comparing your answer with this one than by reading it cold." : "Compare it with yours: look at how every point links back to the key word."}</p>}
+    {open && <>
+      <div className="row" style={{ margin: "14px 0 10px", justifyContent: "space-between" }}>
+        {marks ? <div className="legend" style={{ margin: 0 }}><span><mark className="hl-t">syllabus content</mark></span><span><mark className="hl-c">key-word language</mark></span><span><mark className="hl-e">evidence & data</mark></span></div> : <span />}
+        <label className="row" style={{ gap: 6, fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}><input type="checkbox" checked={marks} onChange={(e) => setMarks(e.target.checked)} style={{ accentColor: "var(--crest)" }} />Show markup</label></div>
+      {marks ? <Annotated text={text} hl={r.hl} /> : <div className="annot plain">{text.split(/\n+/).map((p, k) => <p key={k}>{p}</p>)}</div>}
+      <div className="why6"><b>Why this is Band 6</b><ul>
+        <li>{q.m >= 8 ? "It opens with a clear position that answers the question, and returns to it in the conclusion." : "It answers the question directly from the first sentence."}</li>
+        <li>{{ judge: "It makes explicit judgements using criteria words (highly effective, limited, to a large extent), weighs both sides, and gives a verdict.", explain: "Every point has a cause-and-effect link (because, which leads to, as a result) — the HOW and WHY that Explain demands.", analyse: "It breaks the issue into parts, shows how they connect (in turn, therefore), and states the implications.", compare: "It deals with similarities and differences side by side, using whereas, similarly and in contrast throughout.", discuss: "It presents points for and against, then reaches a reasoned position.", propose: "It puts forward clear suggestions and explains why each would work.", describe: "It gives the key characteristics and features clearly, with an example for each." }[vt]}</li>
+        <li>It supports points with specific evidence: statistics, named programs and real examples.</li>
+        <li>It uses precise HMS terminology and stays relevant to the question throughout.</li>
+      </ul></div>
+      <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>One way to reach Band 6, not the only way. Markers reward any accurate, relevant content that answers the key word. Statistics are approximate national trends; check current figures in your class notes.</p>
+    </>}
+  </div>);
+}
 function MarkPanel({ q, store, update }) {
   const sample = useCap("sample");
   const [ans, setAns] = useState(() => (store.drafts || {})[q.id] || "");
@@ -508,8 +536,9 @@ function MarkPanel({ q, store, update }) {
       </div>
     </div>
 
-    {sample && <div className="card pad">
-      <div className="spread"><h4 style={{ fontSize: 16 }}>Band 6 model response</h4><button className="btn ghost sm" disabled={modelBusy} onClick={genModel}><I n="bulb" s={15} />{model ? "Write another" : "Show a model answer"}</button></div>
+    <ModelAnswer q={q} wc={wc} />
+    {sample && !modelFor(q) && <div className="card pad">
+      <div className="spread"><h4 style={{ fontSize: 16 }}>Band 6 model response</h4><button className="btn ghost sm" disabled={modelBusy} onClick={genModel}><I n="bulb" s={15} />{model ? "Write another" : "Write one with Claude"}</button></div>
       {modelBusy && !model && <div className="thinking" style={{ marginTop: 12 }}><span className="spin" />Writing a model response…</div>}
       {model && <div className="read" style={{ marginTop: 14 }}>{model.split(/\n+/).map((p, k) => <p key={k} style={{ fontSize: 17 }}>{p}</p>)}</div>}
       {!model && !modelBusy && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>Write your own response first, then compare it with a model answer.</p>}

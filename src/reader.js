@@ -5,7 +5,7 @@
 const RD_STOP = new Set(("a an the and or but if of to in on at by for with from into onto over under about as is are was were be been being it its this that these those their there they them he she his her we our you your i me my not no can could would should will may might must do does did done have has had having than then so such also very more most less least many much some any each other both either neither one two three how why what which who whom when where while e.g eg etc including include includes identifies identify explains explain describes describe outlines outline links link shows show uses use using draws draw makes make gives give provides provide applies apply refers refer mentions mention discusses discuss evaluates evaluate assesses assess analyses analyse compares compare justifies justify recognises recognise demonstrates demonstrate considers consider clear clearly specific relevant range example examples data trend trends point points answer response question way ways well just like get gets got make made need needs needed").split(" "));
 
 const RD_CAUSE = ["because", "therefore", "as a result", "leads to", "lead to", "leading to", "led to", "which means", "this means", "meaning that", "due to", "resulting in", "results in", "result in", "consequently", "causes", "caused by", "so that", "contributes to", "contributing to", "thereby", "in turn", "which increases", "which reduces", "which improves", "which allows", "allowing", "enables", "this is why", "since", "hence", "thus"];
-const RD_RELATE = ["relationship", "interrelat", "impact", "implication", "influence", "linked", "links to", "connected", "interact", "combined with", "compounded", "in turn", "depends on", "correlat", "associated with", "flow-on", "affects"];
+const RD_RELATE = ["relationship", "differ", "depend", "contribut", "therefore", "the implication", "this shows", "together", "interrelat", "impact", "implication", "influence", "linked", "links to", "connected", "interact", "combined with", "compounded", "in turn", "depends on", "correlat", "associated with", "flow-on", "affects"];
 const RD_COMPARE = ["whereas", "similarly", "in contrast", "both", "unlike", "compared to", "compared with", "likewise", "the same", "differ", "on the other hand", "while", "however", "in comparison", "alike", "similar"];
 const RD_JUDGE = ["effective", "effectiveness", "ineffective", "significant", "successful", "limited", "strength", "weakness", "overall", "to a large extent", "to a limited extent", "to some extent", "largely", "partially", "most important", "crucial", "essential", "outweigh", "valuable", "worthwhile", "it is evident", "this shows", "ultimately", "in conclusion", "therefore", "the most", "less effective", "more effective", "highly", "inadequate", "sufficient", "insufficient"];
 const RD_BALANCE = ["however", "although", "on the other hand", "despite", "nevertheless", "whereas", "yet", "limitation", "disadvantage", "advantage", "drawback", "conversely", "but", "while", "even though", "on the contrary", "benefit", "barrier"];
@@ -13,6 +13,7 @@ const RD_FEATURE = ["such as", "includes", "including", "involves", "consists of
 const RD_PROPOSE = ["should", "could", "recommend", "propose", "would", "strategy", "strategies", "solution", "implement", "introduce", "invest", "expand"];
 const RD_EVID = ["for example", "for instance", "e.g.", "such as", "according to", "data shows", "statistics", "aihw", "abs", "who ", "research", "study"];
 
+const RD_GENERIC = new Set(["high", "higher", "low", "lower", "area", "rate", "people", "person", "health", "factor", "increas", "reduc", "improv", "great", "good", "better", "level", "time", "year", "group", "service", "system", "help", "role", "part", "chang", "effect", "impact", "influenc", "behaviour", "issue", "need", "other", "number", "more", "less", "risk", "australian", "australia"]);
 function rdStem(w) {
   w = w.toLowerCase().replace(/[’']s$/, "").replace(/[^a-z0-9]/g, "");
   if (w.length > 6) w = w.replace(/(isations?|izations?|ations?|ments?|ingly|ings?|ities|ity|ness|ally|ical|ive|ies|ers?|ed|es|s|ly|al)$/, "");
@@ -99,7 +100,13 @@ function readerMark(q, answer) {
 
   // 1. content coverage against marker points
   const points = q.pts && q.pts.length ? q.pts : dots.flatMap((d) => DOTS[d].sum);
+  const paraList = text.split(/\n\s*\n|\n/).filter((x) => x.trim());
+  const endText = (paraList.length > 1 ? paraList[paraList.length - 1] : text.split(/(?<=[.!?])\s+/).slice(-2).join(" ")).toLowerCase();
+  const concluded = /\b(overall|in conclusion|to conclude|on balance|therefore|this shows|in summary|my investigation shows)\b/.test(endText);
+  const SPORT_RE = /\b(basketball|netball|rugby|league|union|soccer|football|afl|nrl|tennis|swim\w*|golf|cricket|athletics|marathon|runner|running|sprint\w*|cycl\w*|hockey|volleyball|weightlift\w*|rowing|triathl\w*|gymnast\w*|boxing|baseball|softball|touch)\b/i;
   const cover = points.map((p) => {
+    if (/^(conclusion|draws? a conclusion|conclusions?\b|position reached|clear judgement|judgement)/i.test(p.trim())) return { p, status: concluded ? "yes" : "no", hit: [] };
+    if (/^named (individual \+ group )?sports?\b/i.test(p.trim())) { const n = (text.match(new RegExp(SPORT_RE.source, "gi")) || []).length; return { p, status: n >= 1 ? "yes" : "no", hit: [] }; }
     const ts = rdTerms(p); const hit = ts.filter((t) => rdHas(stems, prefixes, t));
     const ratio = ts.length ? hit.length / ts.length : 0;
     const status = (hit.length >= 2 && ratio >= 0.3) || (ts.length <= 2 && hit.length >= 1) ? "yes" : hit.length >= 1 ? "part" : "no";
@@ -128,10 +135,11 @@ function readerMark(q, answer) {
 
   // 3. key word demands
   const cause = rdFind(low, RD_CAUSE), relate = rdFind(low, RD_RELATE), comp = rdFind(low, RD_COMPARE), judge = rdFind(low, RD_JUDGE), bal = rdFind(low, RD_BALANCE), feat = rdFind(low, RD_FEATURE), prop = rdFind(low, RD_PROPOSE);
-  const nC = rdCount(cause), nR = rdCount(relate), nCo = rdCount(comp), nJ = rdCount(judge), nB = rdCount(bal), nF = rdCount(feat), nP = rdCount(prop);
+  const nC = rdCount(cause) + (low.match(/, (?:so|which (?:in turn )?[a-z]+s)\b/g) || []).length + (low.match(/\b(?:this|it|which) (?:allows|means|leads|reduces|increases|improves|prevents|causes|enables)\b/g) || []).length, nR = rdCount(relate), nCo = rdCount(comp), nJ = rdCount(judge), nB = rdCount(bal), nF = rdCount(feat), nP = rdCount(prop);
   const ct = Math.max(2, Math.round(m / 2)), f = (n, t) => Math.min(1, n / t);
   const sentences = text.split(/(?<=[.!?])\s+/).filter((s) => s.trim());
-  const lastS = (sentences.slice(-2).join(" ") || "").toLowerCase(), firstS = (sentences.slice(0, 2).join(" ") || "").toLowerCase();
+  const parasAll = text.split(/\n\s*\n|\n/).filter((p) => p.trim());
+  const lastS = (m >= 8 && parasAll.length >= 3 ? parasAll[parasAll.length - 1] : sentences.slice(-2).join(" ") || "").toLowerCase(), firstS = (sentences.slice(0, 2).join(" ") || "").toLowerCase();
   const judgeEnd = RD_JUDGE.some((j) => lastS.includes(j)), judgeStart = RD_JUDGE.some((j) => firstS.includes(j));
   let kw;
   if (vtype === "describe") kw = Math.min(1, 0.55 + 0.15 * nF + 0.1 * nC);
@@ -190,7 +198,7 @@ function readerMark(q, answer) {
 
   if (covScore < 0.7 && no.length) improvements.push("Cover more of the marker points. You haven't yet dealt with: " + short(no[0].p).replace(/\.$/, "").replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase()) + ".");
   if (vtype === "explain" && nC < ct) improvements.push("Explain asks HOW and WHY. Add cause-and-effect links (“because”, “which leads to”, “as a result”) to each point. You used " + nC + "; aim for at least " + ct + ".");
-  if (vtype === "analyse" && (nC < ct || nR < 2)) improvements.push("Analyse means showing how the parts connect. After each point, add how it affects another factor and what the implication is (“this in turn…”, “the implication is…”).");
+  if (vtype === "analyse" && (nC < ct || nR < 2)) improvements.push((verb ? verb.w : "Analyse") + (verb && verb.w !== "Analyse" ? " asks you to dig into causes and draw conclusions, so show how the parts connect." : " means showing how the parts connect.") + " After each point, add how it affects another factor and what the implication is (“this in turn…”, “the implication is…”).");
   if (vtype === "judge" && nJ < 2) improvements.push("Make an explicit judgement. Use criteria words (“highly effective”, “limited”, “to a large extent”) and state your overall verdict in the first and last sentence.");
   if (vtype === "judge" && nB < 1) improvements.push("Weigh both sides. Add a limitation or counter-point (“However, …”) before you reach your verdict.");
   if (vtype === "compare" && nCo < 2) improvements.push("Compare needs both similarities AND differences, side by side. Use “whereas”, “similarly” and “in contrast”.");
@@ -227,7 +235,7 @@ function readerMark(q, answer) {
     next_level: nextR ? "To move into the " + nextR.r + " range: " + nextR.d.replace(/\.$/, "") + "." : "You're in the top range. Polish it: sharpen every link back to the question, and make sure every example is specific and accurate.",
     capNote, starters,
     scores: [["Content", covScore], ["Key word", kw], ["Evidence", evScore], ["Terminology", termScore], ["Length", Math.min(1, ratio)]].concat(m >= 8 ? [["Structure", structScore]] : []),
-    hl: { cause: cause.concat(judge, comp, bal, relate).map(([p]) => p), terms: [...new Set(cover.flatMap((c) => c.hit))] },
+    hl: { cause: cause.concat(judge, comp, bal, relate).map(([p]) => p), terms: [...new Set(cover.flatMap((c) => c.hit))].filter((t) => !RD_GENERIC.has(t)) },
     wc, target, points: cover
   };
 }
