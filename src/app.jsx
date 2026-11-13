@@ -732,18 +732,23 @@ function Keywords() {
 
 /* ================= GAMES ================= */
 const GAMES = [
-  { id: "rapid", name: "Rapid Fire", d: "60 seconds of multiple choice. Build a streak to multiply your points.", g: "#bf2026", ic: "bolt" },
-  { id: "sort", name: "Sort Rush", d: "Sort each card into the right bin before time runs out: training methods, injuries, SDGs and more.", g: "#1d499f", ic: "sort" },
-  { id: "match", name: "Term Match", d: "Flip cards and pair each HMS term with its meaning in as few moves as you can.", g: "#1f8a5b", ic: "layers" },
-  { id: "seq", name: "Sequence Stack", d: "Put processes in order: TOTAPS, the training year, the injury pathway.", g: "#d48a0f", ic: "stack" },
-  { id: "verb", name: "Key Word Clash", d: "Match each NESA definition to its directive verb before the clock beats you.", g: "#0F1A3D", ic: "key" }
+  { id: "board", name: "The Big Board", d: "Pick a category and a value, answer, win the points. Find the Double Down and bet big. Play solo or with up to 4 teams.", g: "#1d499f", ic: "layers", big: true },
+  { id: "climb", name: "The Climb", d: "12 questions to the top of the ladder. Three lifelines, two safe points, and you can walk away at any time.", g: "#0F1A3D", ic: "trophy", big: true },
+  { id: "mystery", name: "Mystery Term", d: "Crack the HMS term from the clues. The fewer clues you need, the more points you score.", g: "#bf2026", ic: "bulb", big: true },
+  { id: "rapid", name: "Rapid Fire", d: "60 seconds of multiple choice. Build a streak to multiply your points.", g: "#d48a0f", ic: "bolt", big: true },
+  { id: "sort", name: "Sort Rush", d: "Sort each card into the right bin.", g: "#1f8a5b", ic: "sort" },
+  { id: "match", name: "Term Match", d: "Pair each term with its meaning.", g: "#2a5cc0", ic: "layers" },
+  { id: "seq", name: "Sequence Stack", d: "Put processes in the right order.", g: "#962B30", ic: "stack" },
+  { id: "verb", name: "Key Word Clash", d: "Match NESA definitions to key words.", g: "#132651", ic: "key" }
 ];
 function Games({ store }) {
+  const tile = (g, k, small) => <button key={g.id} className={"game-tile" + (small ? " sm" : "")} style={{ "--g": g.g }} onClick={() => go("game-" + g.id)}>
+    <GameArt seed={k} icon={g.ic} />{store.hs[g.id] !== undefined && <span className="hs">BEST {g.id === "climb" ? store.hs[g.id].toLocaleString("en-AU") : store.hs[g.id]}</span>}<h3>{g.name}</h3><p>{g.d}</p>{!small && <span className="play"><I n="play" s={13} />Play</span>}</button>;
   return (<>
-    <div className="page-h"><span className="eyebrow">Revision games</span><h1>Play your way to Band 6</h1><p>Quick games built from the syllabus content. Your high scores are saved on this device.</p></div>
-    <div className="grid g3">{GAMES.map((g, k) => <button key={g.id} className="game-tile" style={{ "--g": g.g, gridColumn: k === 0 ? "span 2" : undefined }} onClick={() => go("game-" + g.id)}>
-      <GameArt seed={k} icon={g.ic} />{store.hs[g.id] !== undefined && <span className="hs">BEST {store.hs[g.id]}</span>}<h3>{g.name}</h3><p>{g.d}</p><span className="play"><I n="play" s={13} />Play</span></button>)}</div>
-    <style>{"@media (max-width:980px){.game-tile{grid-column:auto!important}}"}</style>
+    <div className="page-h"><span className="eyebrow">Revision games</span><h1>Play your way to Band 6</h1><p>Game-show style revision built from the syllabus. Play solo, or put The Big Board on the projector and play in teams. High scores are saved on this device.</p></div>
+    <div className="grid g2">{GAMES.filter((g) => g.big).map((g, k) => tile(g, k))}</div>
+    <div className="sec-h"><div><span className="eyebrow">Quick drills</span><h2>Two-minute warm-ups</h2></div></div>
+    <div className="grid g4">{GAMES.filter((g) => !g.big).map((g, k) => tile(g, k + 4, true))}</div>
   </>);
 }
 function GameArt({ seed, icon }) {
@@ -769,8 +774,8 @@ function GameHost({ id, store, update }) {
   const props = { best: store.hs[id] || 0, record };
   return (<><button className="back" onClick={() => go("games")}><I n="back" s={16} />All games</button>
     <div className="arena">
-      <div className="spread" style={{ marginBottom: 16 }}><h2 style={{ fontSize: 28, fontWeight: 900 }}>{g.name}</h2><span className="chip" style={{ background: "rgba(255,255,255,.1)", color: "#fff" }}>Best {store.hs[id] || 0}</span></div>
-      {id === "rapid" && <RapidFire {...props} />}{id === "sort" && <SortRush {...props} />}{id === "match" && <TermMatch {...props} />}{id === "seq" && <SeqStack {...props} />}{id === "verb" && <VerbClash {...props} />}
+      <div className="spread" style={{ marginBottom: 16 }}><h2 style={{ fontSize: 28, fontWeight: 900 }}>{g.name}</h2><div className="row" style={{ gap: 8 }}><SfxToggle /><span className="chip" style={{ background: "rgba(255,255,255,.1)", color: "#fff" }}>Best {id === "climb" ? (store.hs[id] || 0).toLocaleString("en-AU") : store.hs[id] || 0}</span></div></div>
+      {id === "board" && <BigBoard {...props} />}{id === "climb" && <TheClimb {...props} />}{id === "mystery" && <MysteryTerm {...props} />}{id === "rapid" && <RapidFire {...props} />}{id === "sort" && <SortRush {...props} />}{id === "match" && <TermMatch {...props} />}{id === "seq" && <SeqStack {...props} />}{id === "verb" && <VerbClash {...props} />}
     </div></>);
 }
 function StartScreen({ text, onStart, children }) {
@@ -870,4 +875,4 @@ function VerbClash({ best, record }) {
   </div>;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
