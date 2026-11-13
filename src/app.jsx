@@ -294,6 +294,34 @@ function Beat({ b }) {
 
 const REEL_THEMES = [["#1d499f", "#bf2026"], ["#2a5cc0", "#9aaed4"], ["#962B30", "#1d499f"], ["#1f8a5b", "#1d499f"], ["#bf2026", "#e0a526"], ["#9aaed4", "#962B30"]];
 
+function getCap(name) {
+  if (capCache[name] !== undefined) return Promise.resolve(capCache[name]);
+  if (!window.claude || !window.claude.use) { capCache[name] = null; return Promise.resolve(null); }
+  return Promise.race([window.claude.use(name).then((c) => c || null).catch(() => null), new Promise((r) => setTimeout(() => r(null), 4000))]).then((c) => { capCache[name] = c; return c; });
+}
+let bestVoice;
+function pickVoice() {
+  if (bestVoice !== undefined && bestVoice) return bestVoice;
+  const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  const score = (v) => {
+    const n = v.name, l = (v.lang || "").toLowerCase(); let s = 0;
+    if (!l.startsWith("en")) return -1;
+    if (/natural|neural/i.test(n)) s += 60; if (/premium/i.test(n)) s += 50; if (/enhanced/i.test(n)) s += 40;
+    if (/online/i.test(n)) s += 15; if (/^google/i.test(n)) s += 20; if (/siri/i.test(n)) s += 25;
+    if (/\b(ava|andrew|emma|brian|natasha|william|libby|sonia|ryan|jenny|aria|guy|samantha|karen|lee|catherine|serena|daniel|matilda)\b/i.test(n)) s += 10;
+    if (/en-au/.test(l)) s += 8; else if (/en-gb/.test(l)) s += 5; else if (/en-us/.test(l)) s += 4;
+    if (/compact|eloquence|espeak|zarvox|albert|bad news|bells|boing|bubbles|cellos|trinoids|whisper|wobble|organ|jester|superstar|grandma|grandpa|rocko|shelley|flo|reed|sandy/i.test(n)) s -= 80;
+    return s;
+  };
+  bestVoice = vs.filter((v) => score(v) >= 0).sort((a, b) => score(b) - score(a))[0] || null;
+  return bestVoice;
+}
+if (window.speechSynthesis) { try { speechSynthesis.addEventListener("voiceschanged", () => { bestVoice = undefined; }); } catch (e) {} }
+function deviceSay(text) {
+  return new Promise((res) => {
+    try { const u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-AU"; u.rate = 1; u.pitch = 1; u.onend = res; u.onerror = res; speechSynthesis.speak(u); setTimeout(res, 20000); } catch (e) { res(); }
+  });
+}
 function Reel({ id, store, update, autoplay, onEnd, compact }) {
   const d = DOTS[id], f = faOf(id);
   const beats = useMemo(() => d.reel.map(parseBeat), [id]);
@@ -308,24 +336,37 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
   const liked = !!(store.liked || {})[id];
   const th = REEL_THEMES[ALL_DOT_IDS.indexOf(id) % REEL_THEMES.length];
 
-  const stopAll = () => { run.current++; try { tts && tts.stop(); } catch (e) {} try { speechSynthesis.cancel(); } catch (e) {} };
+  const stopAll = () => { run.current++; try { const t = tts || capCache.tts; t && t.stop(); } catch (e) {} try { speechSynthesis.cancel(); } catch (e) {} };
   useEffect(() => () => stopAll(), []);
   useEffect(() => { stopAll(); setI(0); setPlaying(false); setStarted(false); setDone(false); setProg(0); if (autoplay) setTimeout(() => playFrom(0), 300); }, [id]);
 
   const finish = () => { setPlaying(false); setDone(true); update((s) => ({ ...s, reels: { ...s.reels, [id]: true } })); onEnd && onEnd(); };
 
   async function playFrom(start) {
-    stopAll(); const my = run.current; setStarted(true); setDone(false); setPlaying(true);
+    stopAll(); const my = run.current; setStarted(true); setDone(false); setPlaying(true); setI(start); setProg(0);
+    const voice = muted ? null : await getCap("tts");
+    if (run.current !== my) return;
+    if (voice) {
+      // One continuous Claude-voice reading; each line advances the slide as it starts.
+      let tick = null;
+      const startBeat = (k) => { if (run.current !== my) return; clearInterval(tick); setI(k); setProg(0); const ms = beatMs(beats[k]), t0 = performance.now(); tick = setInterval(() => setProg(Math.min(0.97, (performance.now() - t0) / ms)), 100); };
+      let off = null;
+      try { off = voice.onLine(({ id: lid }) => { const k = parseInt(String(lid).split(":")[1], 10); if (lid && String(lid).startsWith(my + ":") && !isNaN(k)) startBeat(k); }); } catch (e) {}
+      startBeat(start);
+      const lines = beats.slice(start).map((b, j) => ({ text: b.say, voice: "buttery", language: "en", id: my + ":" + (start + j) }));
+      let ok = true;
+      try { await voice.speak(lines, { voice: "buttery", rate: 1 }); } catch (e) { ok = false; if (e && (e.code === "not_granted" || e.code === "unavailable")) capCache.tts = null; }
+      clearInterval(tick); try { typeof off === "function" && off(); } catch (e) {}
+      if (run.current !== my) return;
+      if (ok) { setProg(1); await new Promise((r) => setTimeout(r, 500)); if (run.current === my) finish(); return; }
+      // Claude voice refused (e.g. turned off): carry on with the device voice from the current slide.
+    }
     for (let k = start; k < beats.length; k++) {
       if (run.current !== my) return;
       setI(k); setProg(0);
       const b = beats[k], ms = beatMs(b), t0 = performance.now();
       const tick = setInterval(() => setProg(Math.min(1, (performance.now() - t0) / ms)), 100);
-      let spoken = Promise.resolve();
-      if (!muted) {
-        if (tts) spoken = tts.speak(b.say, { voice: "buttery", rate: 1.05 }).catch(() => {});
-        else if (window.speechSynthesis) spoken = new Promise((res) => { try { const u = new SpeechSynthesisUtterance(b.say); u.lang = "en-AU"; u.rate = 1.05; u.onend = res; u.onerror = res; speechSynthesis.speak(u); setTimeout(res, 20000); } catch (e) { res(); } });
-      }
+      const spoken = !muted && window.speechSynthesis ? deviceSay(b.say) : Promise.resolve();
       await Promise.all([spoken, new Promise((r) => setTimeout(r, muted ? ms : 1600))]);
       clearInterval(tick); setProg(1);
       if (run.current !== my) return;
