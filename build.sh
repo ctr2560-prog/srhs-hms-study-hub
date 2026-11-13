@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 mkdir -p build
 {
   printf 'const LOGO="data:image/png;base64,%s";\n' "$(base64 -i src/logo.png | tr -d '\n')"
-  cat src/meta.js src/content-fa1a.js src/content-fa1b.js src/content-fa2a.js src/content-fa2b.js src/app.jsx
+  cat src/meta.js src/content-fa1a.js src/content-fa1b.js src/content-fa2a.js src/content-fa2b.js src/reader.js src/app.jsx
 } > build/bundle.jsx
 npx esbuild build/bundle.jsx --loader:.jsx=jsx --jsx-factory=React.createElement --jsx-fragment=React.Fragment --target=es2019 --minify-syntax --minify-whitespace --outfile=build/bundle.js --log-level=warning
 {
