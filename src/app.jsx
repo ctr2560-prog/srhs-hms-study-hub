@@ -306,14 +306,16 @@ function pickVoice() {
   const score = (v) => {
     const n = v.name, l = (v.lang || "").toLowerCase(); let s = 0;
     if (!l.startsWith("en")) return -1;
+    // Chrome's streamed "Google …" voices often fail silently: last resort only.
+    if (!v.localService && !/microsoft.*(natural|online)/i.test(n)) s -= 200;
     if (/natural|neural/i.test(n)) s += 60; if (/premium/i.test(n)) s += 50; if (/enhanced/i.test(n)) s += 40;
     if (/online/i.test(n)) s += 15; if (/^google/i.test(n)) s += 20; if (/siri/i.test(n)) s += 25;
     if (/\b(ava|andrew|emma|brian|natasha|william|libby|sonia|ryan|jenny|aria|guy|samantha|karen|lee|catherine|serena|daniel|matilda)\b/i.test(n)) s += 10;
     if (/en-au/.test(l)) s += 8; else if (/en-gb/.test(l)) s += 5; else if (/en-us/.test(l)) s += 4;
-    if (/compact|eloquence|espeak|zarvox|albert|bad news|bells|boing|bubbles|cellos|trinoids|whisper|wobble|organ|jester|superstar|grandma|grandpa|rocko|shelley|flo|reed|sandy/i.test(n)) s -= 80;
+    if (/compact|eloquence|espeak|zarvox|albert|bad news|good news|bahh|bells|boing|bubbles|cellos|trinoids|whisper|wobble|organ|jester|superstar|grandma|grandpa|rocko|shelley|flo|reed|sandy|eddy|fred|junior|kathy|ralph/i.test(n)) s -= 80;
     return s;
   };
-  bestVoice = vs.filter((v) => score(v) >= 0).sort((a, b) => score(b) - score(a))[0] || null;
+  bestVoice = vs.filter((v) => (v.lang || "").toLowerCase().startsWith("en")).sort((a, b) => score(b) - score(a))[0] || null;
   return bestVoice;
 }
 if (window.speechSynthesis) { try { speechSynthesis.addEventListener("voiceschanged", () => { bestVoice = undefined; }); } catch (e) {} }
