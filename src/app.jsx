@@ -1,5 +1,6 @@
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const DOTS = Object.assign({}, DOTS_FA1A, DOTS_FA1B, DOTS_FA2A, DOTS_FA2B);
+[UP_A, UP_B, UP_C, UP_D].forEach((u) => Object.keys(u).forEach((id) => Object.assign(DOTS[id], u[id])));
 const ALL_DOT_IDS = [...FOCUS_AREAS[0].dots, ...FOCUS_AREAS[1].dots];
 const faOf = (id) => FOCUS_AREAS.find((f) => f.id === DOTS[id].fa);
 const dotNum = (id) => faOf(id).dots.indexOf(id) + 1;
