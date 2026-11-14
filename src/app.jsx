@@ -1,6 +1,6 @@
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const DOTS = Object.assign({}, DOTS_FA1A, DOTS_FA1B, DOTS_FA2A, DOTS_FA2B);
-[UP_A, UP_B, UP_C, UP_D].forEach((u) => Object.keys(u).forEach((id) => Object.assign(DOTS[id], u[id])));
+[UP_A, UP_B, UP_C, UP_D, MAP_A, MAP_B, MAP_C, MAP_D].forEach((u) => Object.keys(u).forEach((id) => Object.assign(DOTS[id], u[id])));
 const ALL_DOT_IDS = [...FOCUS_AREAS[0].dots, ...FOCUS_AREAS[1].dots];
 const faOf = (id) => FOCUS_AREAS.find((f) => f.id === DOTS[id].fa);
 const dotNum = (id) => faOf(id).dots.indexOf(id) + 1;
@@ -213,7 +213,7 @@ function Syllabus({ fa, store }) {
 }
 
 /* ================= DOT PAGE ================= */
-const DOT_TABS = [["revise", "Revise", "book"], ["break", "Break it down", "layers"], ["sum", "Summary", "list"], ["reel", "1-min reel", "play"], ["quiz", "Quiz", "quiz"], ["practice", "Practice", "pen"]];
+const DOT_TABS = [["revise", "Revise", "book"], ["sum", "Summary", "list"], ["break", "How it works", "layers"], ["reel", "1-min reel", "play"], ["quiz", "Quiz", "quiz"], ["practice", "Practice", "pen"]];
 function DotPage({ id, store, update }) {
   const d = DOTS[id], f = faOf(id);
   const [tab, setTab] = useState("revise");
@@ -240,14 +240,24 @@ function DotPage({ id, store, update }) {
       <div className="tipbox read"><b>Marker's tip</b><p>{d.tip}</p></div>
     </div>}
 
-    {tab === "break" && <div>
-      {d.flow && <div className="card pad" style={{ marginBottom: 16 }}><span className="eyebrow">How it connects</span>
-        <div className="flow">{d.flow.map((x, k) => <React.Fragment key={k}>{k > 0 && <i>→</i>}<span>{x}</span></React.Fragment>)}</div></div>}
-      <div className="grid g2">{d.con.map(([t, m, e]) => <div className="concept" key={t}><h4>{t}</h4><p>{m}</p><div className="eg"><b>Example</b>{e}</div></div>)}</div>
+    {tab === "break" && <div className="hiw">
+      <section><span className="eyebrow">How it works</span><h2 className="hiw-h">The concept, step by step</h2>
+        <ol className="steps">{(d.how || []).map(([l, x], k) => <li key={k}><span className="n">{k + 1}</span><b>{l}</b><p>{x}</p></li>)}</ol></section>
+      <section><span className="eyebrow">Connections</span><h2 className="hiw-h">How this links to the rest of the course</h2>
+        <div className="cmap">
+          <div className="cmap-centre" style={{ "--c": c }}><span className="verb">{d.v}</span><b>{d.t}</b><small>FA{f.n} · Dot point {dotNum(id)}</small></div>
+          <div className="cmap-links">{(d.links || []).map(([lid, why]) => { const ld = DOTS[lid], lf = faOf(lid); return <button key={lid} className="cmap-link" style={{ "--c": `var(--${lf.id})` }} onClick={() => go("dot-" + lid)}>
+            <span className="cmap-why">{why}</span>
+            <span className="row" style={{ gap: 6 }}><span className={"chip " + lf.id} style={{ padding: "2px 8px", fontSize: 11.5 }}>FA{lf.n} · DP{dotNum(lid)}</span><span className="verb" style={{ fontSize: 10 }}>{ld.v}</span></span>
+            <b>{ld.t}</b><span className="cmap-go">Open<I n="next" s={14} /></span></button>; })}</div>
+        </div></section>
+      <section><span className="eyebrow">Key terms</span><h2 className="hiw-h">Concepts to know</h2>
+        <div className="grid g2">{d.con.map(([t, m, e]) => <div className="concept" key={t}><h4>{t}</h4><p>{m}</p><div className="eg"><b>Example</b>{e}</div></div>)}</div></section>
     </div>}
 
-    {tab === "sum" && <div className="read" style={{ maxWidth: 820 }}>
-      <ol className="sumlist">{d.sum.map((x, k) => <li key={k}><i>{k + 1}</i><span>{x}</span></li>)}</ol>
+    {tab === "sum" && <div>
+      <div className="spread" style={{ marginBottom: 14 }}><span className="eyebrow">Summary notes</span><span className="muted" style={{ fontSize: 13.5 }}>The revision notes, condensed</span></div>
+      <div className="sn-grid">{(d.sn || []).map(([h, bs]) => <div key={h} className="sn-card"><h3>{h}</h3><ul>{bs.map((x, k) => <li key={k}>{x}</li>)}</ul></div>)}</div>
       <div className="tipbox"><b>Key word: {d.v}</b><p>{(VERBS.find((v) => v.w === d.v) || {}).d}. {(VERBS.find((v) => v.w === d.v) || {}).how}</p></div>
     </div>}
 
