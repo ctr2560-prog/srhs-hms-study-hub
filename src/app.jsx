@@ -261,7 +261,7 @@ function DotPage({ id, store, update }) {
       <div className="tipbox"><b>Key word: {d.v}</b><p>{(VERBS.find((v) => v.w === d.v) || {}).d}. {(VERBS.find((v) => v.w === d.v) || {}).how}</p></div>
     </div>}
 
-    {tab === "reel" && <div className="reel-stage"><Reel id={id} store={store} update={update} />
+    {tab === "reel" && <div className="reel-stage"><AnyReel id={id} store={store} update={update} />
       <div className="reel-side"><span className="eyebrow">Up next</span>{next && <ReelThumb id={next} store={store} onClick={() => go("reel-" + next)} />}<button className="btn ghost" onClick={() => go("reel-" + id)}>Open in reel feed</button></div></div>}
 
     {tab === "quiz" && <Quiz key={id} items={ALL_MCQ.filter((m) => m.dot === id)} title={"Dot point " + dotNum(id) + " quiz"} onDone={(pct) => update((s) => ({ ...s, quiz: { ...s.quiz, [id]: Math.max(pct, s.quiz[id] || 0) } }))} />}
@@ -480,10 +480,11 @@ function Reel({ id, store, update, autoplay, onEnd, compact }) {
     </div>
   );
 }
+function AnyReel(p) { return EXPLAIN[p.id] ? <Explainer key="ex" {...p} /> : <Reel key="r" {...p} />; }
 function ReelThumb({ id, store, onClick }) {
   const d = DOTS[id], f = faOf(id);
   return <button className={"thumb" + (store.reels[id] ? " seen" : "")} style={{ "--c": REEL_THEMES[ALL_DOT_IDS.indexOf(id) % REEL_THEMES.length][1] }} onClick={onClick}>
-    <small>FA{f.n} · {dotNum(id)} · {d.v}</small><b>{plain(d.reel[0].slice(2))}</b><span className="pl"><I n="play" /></span></button>;
+    <small>FA{f.n} · {dotNum(id)} · {d.v}{EXPLAIN[id] ? " · Explainer" : ""}</small><b>{EXPLAIN[id] ? EXPLAIN[id][0].title : plain(d.reel[0].slice(2))}</b><span className="pl"><I n="play" /></span></button>;
 }
 function Reels({ store }) {
   const [fa, setFa] = useState("fa1");
@@ -510,7 +511,7 @@ function ReelFeed({ start, store, update }) {
     <button className="back" onClick={() => go("reels")}><I n="back" s={16} />All reels</button>
     <div className="feed">
       <div className="reel-stage">
-        <Reel id={id} store={store} update={update} autoplay={auto} onEnd={onEnd} />
+        <AnyReel id={id} store={store} update={update} autoplay={auto} onEnd={onEnd} />
         <div className="reel-side">
           <span className="eyebrow">Now playing</span><b style={{ fontFamily: "var(--display)" }}>{DOTS[id].t}</b>
           <button className="btn" onClick={() => go("dot-" + id)}>Open revision notes</button>
