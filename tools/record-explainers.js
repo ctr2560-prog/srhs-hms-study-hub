@@ -5,8 +5,7 @@ const root = path.join(__dirname, "..");
 const voice = process.argv[2], rate = process.argv[3] || "175", only = process.argv[4];
 if (!voice) { console.error('Pass a voice name, e.g. "Lee (Premium)"'); process.exit(1); }
 const files = fs.readdirSync(path.join(root, "src")).filter((f) => /^explain-[a-z]\.js$/.test(f)).sort();
-const EX = {};
-for (const f of files) { const src = fs.readFileSync(path.join(root, "src", f), "utf8"); Object.assign(EX, new Function(src.replace(/^const (EXPLAIN\w*) =/m, "return ") )()); }
+const EX = new Function(files.map((f) => fs.readFileSync(path.join(root, "src", f), "utf8")).join("\n") + ";return EXPLAIN;")();
 
 function speakable(x) {
   return x
@@ -15,7 +14,11 @@ function speakable(x) {
     .replace(/\bATP-PC\b/g, "A T P, P C").replace(/\bATP\b/g, "A T P").replace(/\bCOPD\b/g, "C O P D")
     .replace(/\bDALYs\b/g, "dallies").replace(/\bDALY\b/g, "dally").replace(/\bGPs?\b/g, (m) => m === "GP" ? "G P" : "G Ps")
     .replace(/\bSDGs?\b/g, (m) => m === "SDG" ? "S D G" : "S D Gs").replace(/\bAIHW\b/g, "A I H W").replace(/\bHSC\b/g, "H S C")
-    .replace(/\bkm\b/g, "kilometre").replace(/\s+/g, " ").trim();
+    .replace(/\bkm\b/g, "kilometre").replace(/\bTOTAPS\b/g, "toe taps").replace(/\bRICER\b/g, "rice-er").replace(/\bHARM\b/g, "harm")
+    .replace(/\bSMART\b/g, "smart").replace(/\bWADA\b/g, "wahda").replace(/\bNSAIDs\b/g, "N SAIDS").replace(/\bEPO\b/g, "E P O")
+    .replace(/\bPBS\b/g, "P B S").replace(/\bTGA\b/g, "T G A").replace(/\bNDIS\b/g, "N D I S").replace(/\bOECD\b/g, "O E C D")
+    .replace(/\bCAR-T\b/g, "car T").replace(/\bHIIT\b/g, "hit").replace(/\bTUE\b/g, "T U E").replace(/\bNCD\b/g, "N C D")
+    .replace(/\bmg\/kg\b/g, "milligrams per kilo").replace(/\bg\/kg\b/g, "grams per kilo").replace(/\bA I\b/g, "A I").replace(/\s+/g, " ").trim();
 }
 const RATE = 22050, GAP = 0.14, SCENE_GAP = 0.4;
 const tmp = path.join(root, "build", "seg.wav");

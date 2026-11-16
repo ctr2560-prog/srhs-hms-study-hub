@@ -1,0 +1,117 @@
+// Explainers: FA1 dot points 10–18
+Object.assign(EXPLAIN, {
+h10: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 10", title: "Complementary healthcare", sub: "What it is, and why people use it",
+    say: [["About two in three Australians use some form of complementary healthcare. But does it work? Let's explain.", 2]] },
+  { v: "eq", title: "Key distinction", parts: [["Complementary", "Used WITH medicine", "e.g. massage during chemotherapy"], ["Alternative", "Used INSTEAD of medicine", "Riskier"]], ops: ["vs"],
+    say: ["Complementary approaches are used alongside mainstream medicine.", "If they replace medicine, they're called alternative, and that's where the risk rises."] },
+  { v: "split", title: "Products and services", L: { h: "Products", icon: "pill", items: ["Vitamins, herbs", "Fish oil, probiotics"] }, R: { h: "Services", icon: "user", items: ["Chiropractic, acupuncture", "Naturopathy, massage, yoga"] },
+    say: ["Products include vitamins, herbal medicines, fish oil and probiotics.", "Services include chiropractic, acupuncture, naturopathy, massage and yoga."] },
+  { v: "list", title: "Why people use it", items: [["shield", "Prevention", "Wellbeing, staying healthy"], ["pulse", "Treating an issue", "Chronic pain, anxiety"], ["cross", "Supplementing treatment", "Alongside medical care"]],
+    say: [["The syllabus gives three uses:", 0], "as prevention,", "to treat a health issue like chronic pain,", "or to supplement medical treatment."] },
+  { v: "split", title: "Check the evidence", L: { h: "AUST R", icon: "check", items: ["Evaluated for effectiveness", "Stronger evidence"] }, R: { h: "AUST L", icon: "alert", items: ["Checked for safety and quality only", "Effectiveness NOT evaluated"] },
+    say: [["Look at the label.", 0], "AUST R means the product was evaluated for effectiveness.", "AUST L means only safety and quality were checked. Risks include drug interactions, cost and delaying real treatment."] },
+  { v: "recap", title: "Explain like a marker", items: [["What", "Product or service"], ["Why", "Prevent, treat or supplement"], ["Evidence", "Benefit vs risk"]], tip: "Always add the risk: interactions and delayed treatment.",
+    say: [["In your answer:", 0], "say what it is,", "why it's used,", "and what the evidence says.", "And always mention the risks."] }
+],
+h11: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 11", title: "Should you buy it?", sub: "Being a critical health consumer",
+    say: [["A fitness influencer swears by a detox tea. Should you buy it? Let's explain how a critical health consumer decides.", 2]] },
+  { v: "stat", n: "60%", label: "of Australians have low health literacy", note: "So misinformation spreads fast",
+    say: ["About 60 percent of Australians have low health literacy,", "so misinformation, like detox teas and miracle supplements, spreads fast."] },
+  { v: "list", title: "Who do you believe?", items: [["user", "Who?", "Qualified? AHPRA-registered?"], ["search", "What?", "Research, or just testimonials?"], ["clock", "When?", "Is it current?"], ["dollar", "Why?", "To inform, or to sell?"]],
+    say: [["Ask four questions.", 0], "Who's saying it? Are they qualified?", "What's the evidence: research or testimonials?", "When was it published?", "And why: to inform you, or to sell you something?"] },
+  { v: "flow", title: "Then verify", steps: [["eye", "See a claim", "Ad, post or product"], ["search", "Check reputable sources", "healthdirect, AIHW, .gov.au"], ["check", "Decide", "Safe, informed choice"]],
+    say: [["Then verify.", 0], "When you see a claim,", "check it against reputable sources like healthdirect,", "then make an informed decision."] },
+  { v: "list", title: "Your rights and protections", items: [["shield", "Charter of Healthcare Rights", "Access, safety, respect"], ["pill", "TGA", "Regulates medicines and devices"], ["alert", "ACCC and HCCC", "Complaints and false claims"]],
+    say: [["You're also protected", 0], "by the Charter of Healthcare Rights,", "the TGA, which regulates medicines,", "and complaints bodies for false advertising."] },
+  { v: "recap", title: "Why it matters", items: [["Money", "Avoid wasting it"], ["Safety", "Avoid harm and interactions"], ["Health", "Don't delay real treatment"]], tip: "Explain = cause and effect. Say WHY being critical leads to better health.",
+    say: [["Being critical protects", 0], "your money,", "your safety,", "and your health.", "In the exam, explain why, using cause and effect."] }
+],
+h12: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 12", title: "A system under pressure", sub: "Current and emerging challenges",
+    say: [["Ambulances waiting outside hospitals. Why is the system stretched, and how is it changing? Let's investigate.", 2]] },
+  { v: "list", title: "Current challenges", items: [["users", "Rising demand", "Ageing and chronic disease"], ["user", "Workforce shortages", "Especially rural; burnout"], ["dollar", "Falling bulk billing", "Delayed care, ED overuse"], ["clock", "Waits and ramping", "Emergency and surgery backlogs"]],
+    say: [["The current challenges:", 0], "demand is rising with ageing and chronic disease,", "there aren't enough health workers, especially in the bush,", "falling bulk billing pushes people to emergency departments,", "and that means waits and ramping."] },
+  { v: "list", title: "How the system responds", items: [["cross", "Urgent Care Clinics", "Free, no appointment"], ["dollar", "Bulk billing incentives", "Tripled from 2023"], ["pill", "New roles", "Pharmacist prescribing, nurse practitioners"]],
+    say: [["The response:", 0], "Medicare Urgent Care Clinics take pressure off emergency,", "bulk billing incentives were tripled,", "and pharmacists and nurse practitioners are doing more."] },
+  { v: "list", title: "Emerging changes", items: [["phone", "Digital and virtual care", "Telehealth, virtual hospitals"], ["brain", "AI", "Imaging, scribes"], ["dna", "Genomics", "Personalised medicine"], ["globe", "Climate change", "Heat, new disease patterns"]],
+    say: [["And what's emerging?", 0], ["Telehealth, virtual hospitals and artificial intelligence,", 2], ["genomics, and the health effects of climate change.", 2]] },
+  { v: "recap", title: "Investigate like a marker", items: [["Challenge", "What and why"], ["Response", "What's being done"], ["Conclusion", "Is it working?"]], tip: "Link challenges: workforce + ageing + cost are connected.",
+    say: [["To investigate:", 0], "explain the challenge,", "the response,", "then conclude.", "Top answers link the challenges together."] }
+],
+h13: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 13", title: "Technology and health", sub: "Friend or foe?",
+    say: [["Your phone could save your life, or wreck your sleep. Let's discuss the relationship between technology and health.", 2]] },
+  { v: "list", title: "Technology improves health", items: [["search", "Diagnosis and treatment", "MRI, robotic surgery, cochlear implants"], ["phone", "Access", "Telehealth, online mental health"], ["pulse", "Self-management", "Glucose monitors, fitness apps"]],
+    say: [["On the positive side,", 0], "technology improves diagnosis and treatment,", "gives access through telehealth,", "and helps people manage conditions themselves."] },
+  { v: "list", title: "Technology harms health", items: [["clock", "Sedentary screen time", "Fewer than 1 in 10 young people active enough"], ["moon", "Poor sleep", "Late-night devices"], ["alert", "Social media", "Cyberbullying, body image"], ["search", "Misinformation", "Spreads fast online"]],
+    say: [["But there's a negative side.", 0], "Screen time means sitting more,", "late-night devices damage sleep,", "social media brings cyberbullying and body image pressure,", "and misinformation spreads fast."] },
+  { v: "flow", title: "Who misses out", steps: [["users", "Digital divide", "Older, low-income, remote"], ["lock", "Less access", "Can't use digital health"], ["scale", "Wider inequity", "Gaps grow"]],
+    say: [["And not everyone benefits.", 0], "The digital divide affects older, low-income and remote Australians.", "They can't use digital services as easily,", "so inequity can widen."] },
+  { v: "recap", title: "Discuss like a marker", items: [["Benefits", "With examples"], ["Harms", "With examples"], ["Judgement", "It depends on use and access"]], tip: "Neither simply good nor bad: it depends on access, use and regulation.",
+    say: [["To discuss:", 0], "give the benefits,", "the harms,", "and a judgement.", "Technology is neither simply good nor bad. It depends on how it's used."] }
+],
+h14: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 14", title: "New technologies and treatments", sub: "How they're changing healthcare",
+    say: [["Robots in surgery, drugs matched to your genes, hospital care at home. Let's investigate what's new.", 2]] },
+  { v: "list", title: "Five examples", items: [["dna", "Genomics", "Drugs matched to a tumour's genes"], ["shield", "CAR-T immunotherapy", "For some blood cancers"], ["cross", "Robotic surgery", "Smaller cuts, shorter stays"], ["home", "Virtual hospitals", "Hospital care at home"], ["drop", "Glucose monitors", "Subsidised for type 1 diabetes"]],
+    say: [["Here are five.", 0], ["Genomics matches drugs to a tumour's genes, and CAR-T reprograms immune cells to fight blood cancers.", 2], ["Robotic surgery means smaller cuts, virtual hospitals bring care home, and continuous glucose monitors are now subsidised.", 3]] },
+  { v: "flow", title: "From lab to patient", steps: [["shield", "TGA approves", "Safe and effective?"], ["dollar", "PBAC or MSAC", "Value for money?"], ["hospital", "Adopted", "Hospitals use it"]],
+    say: [["How does it reach patients?", 0], "The TGA checks it's safe,", "expert committees decide if it's worth subsidising,", "then hospitals adopt it."] },
+  { v: "list", title: "How the system changes", items: [["home", "Hospital → home"], ["user", "One-size-fits-all → personalised"], ["search", "Late treatment → early detection"]],
+    say: [["The big shifts:", 0], "care moves from hospital to home,", "treatment becomes personalised,", "and disease is detected earlier."] },
+  { v: "recap", title: "Who benefits?", items: [["Cost", "Expensive to fund"], ["Equity", "City hospitals first"], ["Ethics", "Genetic privacy"]], tip: "Conclude: improves outcomes, but cost and equity decide who benefits.",
+    say: [["But consider", 0], "the cost,", "who gets access first,", "and ethics like genetic privacy.", "Conclude: better outcomes, but not for everyone equally."] }
+],
+h15: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 15", title: "Digital health", sub: "Evaluating its impact on the system",
+    say: [["Your health records, prescriptions and doctor's appointments, all on your phone. But how well does it work? Let's evaluate.", 2]] },
+  { v: "list", title: "Services available", items: [["book", "My Health Record", "Opt-out since 2019"], ["phone", "Telehealth", "Permanent since 2022"], ["pill", "E-prescriptions", "Scripts on your phone"], ["pulse", "Remote monitoring", "Apps and wearables"]],
+    say: [["Digital health means using technology to deliver care.", 0], "There's My Health Record,", "telehealth,", "electronic prescriptions,", "and remote monitoring."] },
+  { v: "flow", title: "How connected is it?", steps: [["pen", "Information created", "Test, script, consult"], ["layers", "Shared digitally", "Other providers see it"], ["check", "Better care", "Fewer errors and repeat tests"]],
+    say: [["When it works,", 0], "information created at one appointment,", "is shared with your other providers,", "so there are fewer errors and repeated tests. But many specialists still don't upload."] },
+  { v: "split", title: "Opportunities and challenges", L: { h: "Opportunities", icon: "check", items: ["Convenience, rural access", "Efficiency, fewer errors"] }, R: { h: "Challenges", icon: "alert", items: ["Privacy and cyberattacks", "Digital divide, cost"] },
+    say: ["For individuals and organisations, it means convenience, rural access and efficiency.", "But there are privacy risks, cyberattacks and a digital divide."] },
+  { v: "recap", title: "Evaluate like a marker", items: [["Criteria", "Access, efficiency, equity"], ["Evidence", "For and against"], ["Judgement", "To what extent?"]], tip: "'Improved access substantially, but limited by gaps in connection and unequal access.'",
+    say: [["Evaluate means judge the value.", 0], "Set criteria,", "weigh the evidence,", "and give a judgement.", "It's improved access a lot, but it's not fully connected or equal yet."] }
+],
+h16: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 16", title: "AI and health data", sub: "How they're shaping our health",
+    say: [["Artificial intelligence can read an X-ray in seconds. Let's examine how A I and health data are changing healthcare.", 2]] },
+  { v: "list", title: "How AI is used", items: [["eye", "Imaging", "X-rays, mammograms, skin checks"], ["pen", "AI scribes", "Summarise consultations"], ["chart", "Predictive analytics", "Spot deterioration early"]],
+    say: [["A I is used", 0], "to read medical images,", "to write up consultation notes,", "and to predict which patients are getting worse."] },
+  { v: "flow", title: "Reducing spending", steps: [["search", "Earlier detection", "Disease found sooner"], ["dollar", "Cheaper treatment", "Before it gets serious"], ["clock", "Less admin", "More time for patients"]],
+    say: [["It saves money because", 0], "disease is found earlier,", "and early treatment is cheaper,", "and clinicians spend less time on paperwork."] },
+  { v: "list", title: "Curing and managing disease", items: [["check", "More accurate diagnosis"], ["dna", "Personalised treatment"], ["pulse", "Remote monitoring", "Chronic disease at home"]],
+    say: [["For patients,", 0], "it means more accurate diagnosis,", "personalised treatment,", "and monitoring chronic disease from home."] },
+  { v: "list", title: "Protecting privacy", items: [["lock", "Privacy laws", "Privacy Act, My Health Records Act"], ["user", "Consent and de-identification"], ["shield", "Cybersecurity"], ["eye", "Human oversight", "And checking for bias"]],
+    say: [["But it needs safeguards:", 0], ["privacy laws, consent and removing names from data,", 2], ["strong cybersecurity, and humans checking the A I for bias.", 2]] },
+  { v: "recap", title: "Examine like a marker", items: [["Use", "What AI does"], ["Benefit", "Cost and outcomes"], ["Safeguard", "Privacy and bias"]], tip: "Bias matters: AI trained on some groups may work worse for others.",
+    say: [["In the exam:", 0], "show the use,", "the benefit,", "and the safeguard.", "Mention bias. It's what top answers include."] }
+],
+h17: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 17", title: "The SDGs", sub: "Key features of the Sustainable Development Goals",
+    say: [["Seventeen goals, 193 countries, one deadline. Let's describe the Sustainable Development Goals.", 2]] },
+  { v: "list", title: "Key features", items: [["globe", "Adopted 2015", "All 193 UN members"], ["target", "17 goals, 169 targets", "Deadline 2030"], ["layers", "Integrated", "Social, economic, environmental"], ["users", "Leave no one behind", "Universal"]],
+    say: [["The key features:", 0], "adopted in 2015 by all 193 UN members,", "with 17 goals and 169 targets to reach by 2030.", "They're integrated, so progress on one helps the others,", "and the promise is to leave no one behind."] },
+  { v: "list", title: "Your four goals", items: [["heart", "SDG 3: Good Health", "Cut NCD deaths, road deaths; universal coverage"], ["book", "SDG 4: Quality Education", "Free schooling; health literacy"], ["scale", "SDG 10: Reduced Inequalities", "Inclusion for all"], ["home", "SDG 11: Sustainable Cities", "Transport, green space, clean air"]],
+    say: [["You need four.", 0], "Goal 3 is good health, like cutting chronic disease deaths by a third.", "Goal 4 is quality education, which builds health literacy.", "Goal 10 is reduced inequalities,", "and goal 11 is sustainable cities, with public transport and green space."] },
+  { v: "flow", title: "How they connect", steps: [["book", "Education", "SDG 4"], ["scale", "Equality", "SDG 10"], ["heart", "Better health", "SDG 3"]],
+    say: [["And they connect.", 0], "Better education", "reduces inequality,", "which improves health."] },
+  { v: "recap", title: "Describe like a marker", items: [["Feature", "Name it"], ["Detail", "A target or example"], ["Link", "How it supports health"]], tip: "Describe = characteristics and features. Use specific targets.",
+    say: [["To describe:", 0], "name the feature,", "give a specific target,", "and link it to health."] }
+],
+h18: [
+  { v: "title", kicker: "Focus Area 1 · Dot point 18", title: "SDGs in action", sub: "Using the goals to improve community health",
+    say: [["How do global goals change health in your suburb? Let's evaluate how the SDGs guide community action.", 2]] },
+  { v: "list", title: "What worked elsewhere", items: [["run", "Copenhagen and Melbourne", "Cycling, 20-minute neighbourhoods"], ["book", "Clontarf and Stars", "Keeping First Nations students engaged"], ["heart", "North Karelia, Finland", "Heart disease deaths down 80%+"]],
+    say: [["Look at other communities.", 0], "Copenhagen and Melbourne built cycling cities, linking goals 11 and 3.", "Clontarf and Stars keep First Nations students at school, linking goals 4 and 3.", "And Finland's North Karelia cut heart disease deaths by over 80 percent."] },
+  { v: "flow", title: "Apply it to your community", steps: [["chart", "Use local data", "LHD and PHN reports"], ["alert", "Find the issues", "Obesity, diabetes, heat"], ["target", "Map to an SDG", "3, 4, 10 or 11"]],
+    say: [["For your own community,", 0], "start with local health data,", "identify the issues, like diabetes or extreme heat in Western Sydney,", "and map each one to an SDG."] },
+  { v: "list", title: "Strategies and advocacy", items: [["pen", "Advocacy", "Petitions, council, youth councils"], ["run", "Action", "Shared paths, shade, free exercise"], ["users", "Co-design", "With the community"]],
+    say: [["Then act.", 0], "Advocate through council and youth councils,", "push for shared paths, shade and free exercise,", "and design it with the community."] },
+  { v: "recap", title: "Will it work?", items: [["Evidence-based", "Worked elsewhere?"], ["Equitable", "Reaches those most in need?"], ["Measurable", "Before and after data"]], tip: "Evaluate = criteria + judgement. Use the criteria to decide effectiveness.",
+    say: [["To evaluate a strategy, ask:", 0], "is it evidence-based,", "is it equitable,", "and can we measure it?", "Then make a judgement."] }
+]
+});

@@ -7,7 +7,7 @@ mkdir -p build
 [ -f src/explain-audio.js ] || echo "const EXPLAIN_AUDIO = null;" > src/explain-audio.js
 {
   printf 'const LOGO="data:image/png;base64,%s";\n' "$(base64 -i src/logo.png | tr -d '\n')"
-  cat src/meta.js src/content-fa1a.js src/content-fa1b.js src/content-fa2a.js src/content-fa2b.js src/upgrades-a.js src/upgrades-b.js src/upgrades-c.js src/upgrades-d.js src/maps-a.js src/maps-b.js src/maps-c.js src/maps-d.js src/reader.js src/models-fa1.js src/models-fa2.js src/models-er.js src/audio-manifest.js src/explain-a.js src/explain-audio.js src/app.jsx src/explainer.jsx src/games-pro.jsx src/boot.jsx
+  cat src/meta.js src/content-fa1a.js src/content-fa1b.js src/content-fa2a.js src/content-fa2b.js src/upgrades-a.js src/upgrades-b.js src/upgrades-c.js src/upgrades-d.js src/maps-a.js src/maps-b.js src/maps-c.js src/maps-d.js src/reader.js src/models-fa1.js src/models-fa2.js src/models-er.js src/audio-manifest.js src/explain-a.js src/explain-b.js src/explain-c.js src/explain-d.js src/explain-e.js src/explain-audio.js src/app.jsx src/explainer.jsx src/games-pro.jsx src/boot.jsx
 } > build/bundle.jsx
 npx esbuild build/bundle.jsx --loader:.jsx=jsx --jsx-factory=React.createElement --jsx-fragment=React.Fragment --target=es2019 --minify-syntax --minify-whitespace --outfile=build/bundle.js --log-level=warning
 {

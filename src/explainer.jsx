@@ -16,6 +16,18 @@ const EXI = {
   weight: "M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12",
   run: "M13 4.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0zM7 21l3-6 3 2v5M10 15l1-5 4 3h4M11 10l-4 1-2 3",
   cc: "M3 5h18v14H3zM10 10a2 2 0 1 0 0 4M17 10a2 2 0 1 0 0 4",
+  shield: "M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z",
+  hospital: "M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M2 21h20M12 7v6M9 10h6M10 21v-4h4v4",
+  phone: "M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM11 18h2",
+  globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20",
+  pill: "M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7zM7 7l7 7",
+  search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5",
+  apple: "M12 7c-2-2-7-2-7 4 0 5 3 10 5 10 1 0 1.5-.5 2-.5s1 .5 2 .5c2 0 5-5 5-10 0-6-5-6-7-4zM12 7c0-2 1-4 3-4",
+  chart: "M3 3v18h18M7 15v3M12 10v8M17 6v12",
+  lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
+  dna: "M7 3c0 6 10 6 10 12s-10 6-10 6M17 3c0 6-10 6-10 12M8 7h8M8 17h8",
+  eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  leaf: "M5 21c0-9 5-15 15-16-1 10-7 15-15 16zM5 21l8-8",
 };
 function ExIcon({ n }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={EXI[n] || P[n] || P.bulb} /></svg>; }
 
@@ -24,7 +36,7 @@ function exSegments(scenes) {
   const segs = [];
   scenes.forEach((sc, si) => {
     let shown = 0;
-    sc.say.forEach((s) => { const [text, n] = Array.isArray(s) ? s : [s, 1]; shown += n; segs.push({ scene: si, shown, text }); });
+    sc.say.forEach((s, j) => { const [text, n] = Array.isArray(s) ? s : [s, 1]; shown += n; segs.push({ scene: si, shown: j === sc.say.length - 1 ? 99 : shown, text }); });
   });
   return segs;
 }
@@ -34,8 +46,9 @@ const explainRec = (id) => (typeof EXPLAIN_AUDIO !== "undefined" && EXPLAIN_AUDI
 
 function CountUp({ to, ms = 900, suffix = "" }) {
   const [v, setV] = useState(0);
-  useEffect(() => { let raf, t0 = performance.now(); const f = (t) => { const p = Math.min(1, (t - t0) / ms); setV(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) raf = requestAnimationFrame(f); }; raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf); }, [to]);
-  return <>{v}{suffix}</>;
+  const dp = (String(to).split(".")[1] || "").length;
+  useEffect(() => { let raf, t0 = performance.now(); const f = (t) => { const p = Math.min(1, (t - t0) / ms); setV(to * (1 - Math.pow(1 - p, 3))); if (p < 1) raf = requestAnimationFrame(f); }; raf = requestAnimationFrame(f); return () => cancelAnimationFrame(raf); }, [to]);
+  return <>{v.toFixed(dp)}{suffix}</>;
 }
 function StatNum({ n }) {
   const m = String(n).match(/^([^\d]*)(\d+)(.*)$/);

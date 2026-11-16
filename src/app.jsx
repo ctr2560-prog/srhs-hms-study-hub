@@ -132,7 +132,7 @@ function Home({ store }) {
   const nf = faOf(nextDot), nd = DOTS[nextDot];
   const pct = Math.round(seen / 36 * 100), R = 98, C = 2 * Math.PI * R;
   const hr = new Date().getHours(), greet = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
-  const TOOLS = [["reels", "reel", "1-minute reels", "Narrated, animated revision clips for every dot point.", "#fdecec", "#bf2026"], ["quiz", "quiz", "Quizzes", "Section I style multiple choice, with the reasoning behind every answer.", "#e8effb", "#1d499f"], ["marker", "pen", "Written Responses", "Write short answers and extended responses, get a mark and band, and see a Band 6 answer.", "#fdf3dc", "#a86a00"], ["games", "game", "Revision games", "Rapid Fire, Sort Rush, Term Match and more.", "#e6f5ed", "#1f8a5b"]];
+  const TOOLS = [["reels", "reel", "1-minute explainers", "Narrated, animated videos that explain every dot point.", "#fdecec", "#bf2026"], ["quiz", "quiz", "Quizzes", "Section I style multiple choice, with the reasoning behind every answer.", "#e8effb", "#1d499f"], ["marker", "pen", "Written Responses", "Write short answers and extended responses, get a mark and band, and see a Band 6 answer.", "#fdf3dc", "#a86a00"], ["games", "game", "Revision games", "Rapid Fire, Sort Rush, Term Match and more.", "#e6f5ed", "#1f8a5b"]];
   return (<>
     <section className="hero">
       <div>
@@ -491,7 +491,7 @@ function Reels({ store }) {
   const f = FOCUS_AREAS.find((x) => x.id === fa);
   const tts = useCap("tts");
   return (<>
-    <div className="page-h"><span className="eyebrow">Reels</span><h1>1-minute revisors</h1><p>One short reel for every dot point, with a hook, the key facts and a lock-in line at the end. Tap the sides of a reel to skip back or forward. Play the feed and they run one after another.</p></div>
+    <div className="page-h"><span className="eyebrow">Reels</span><h1>1-minute explainers</h1><p>A short narrated video for every dot point. Each one builds the concept step by step with diagrams, then ends with an exam tip. Use the chapters to jump to any part, or play the feed to watch them one after another.</p></div>
     <div className="spread" style={{ marginBottom: 18 }}>
       <div className="tabs" style={{ margin: 0 }}>{FOCUS_AREAS.map((x) => <button key={x.id} className={x.id === fa ? "on" : ""} onClick={() => setFa(x.id)}>Focus area {x.n}</button>)}</div>
       <button className="btn red" onClick={() => go("reel-" + f.dots[0])}><I n="play" s={18} />Play the feed</button>
