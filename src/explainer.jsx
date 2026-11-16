@@ -67,7 +67,7 @@ function ExScene({ sc, shown }) {
     <div className={"ex-list" + (sc.items.length > 4 ? " two" : "")}>{sc.items.map(([ic, t, dt], k) => <div key={k} className={"ex-li" + on(k)}><span className={"ex-ic t" + (k % 4)}><ExIcon n={ic} /></span><div><b>{t}</b>{dt && <small>{dt}</small>}</div></div>)}</div>
   </div>;
   if (sc.v === "bars") return <div className="ex-body">{head}
-    <div className="ex-bars">{sc.items.map(([l, val, tone], k) => <div key={k} className={"ex-brow" + on(k)}><span className="lab">{l}</span><div className="track"><i className={"t-" + tone} style={{ width: k < shown ? (val / sc.max) * 100 + "%" : 0 }} /><b>{k < shown ? <CountUp to={val} suffix={sc.unit} /> : ""}</b></div></div>)}</div>
+    <div className="ex-bars">{sc.items.map(([l, val, tone], k) => <div key={k} className={"ex-brow" + on(k)}><span className="lab">{l}</span><div className="track"><i className={"t-" + tone} style={{ width: k < shown ? (val / sc.max) * 100 + "%" : 0 }} /></div><b className="val">{k < shown ? <CountUp to={val} suffix={sc.unit} /> : ""}</b></div>)}</div>
   </div>;
   if (sc.v === "stat") return <div className="ex-stat">
     <div className={"n" + on(0)}>{shown > 0 ? <StatNum n={sc.n} /> : ""}</div>
